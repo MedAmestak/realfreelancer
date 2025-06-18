@@ -20,6 +20,31 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     
     List<Message> findByProjectAndSenderAndReceiver(Project project, User sender, User receiver);
     
+    // Find conversation between two users (without project context)
+    @Query("SELECT m FROM Message m WHERE " +
+           "((m.sender = :user1 AND m.receiver = :user2) OR " +
+           "(m.sender = :user2 AND m.receiver = :user1)) " +
+           "ORDER BY m.createdAt DESC")
+    Page<Message> findConversationBetweenUsers(@Param("user1") User user1, 
+                                              @Param("user2") User user2, 
+                                              Pageable pageable);
+    
+    // Mark messages as read between two users
+    @Modifying
+    @Query("UPDATE Message m SET m.isRead = true WHERE m.sender = :sender AND m.receiver = :receiver AND m.isRead = false")
+    int markMessagesAsRead(@Param("sender") User sender, @Param("receiver") User receiver);
+    
+    // Find user conversations (list of users they've chatted with)
+    @Query("SELECT DISTINCT " +
+           "CASE WHEN m.sender = :user THEN m.receiver ELSE m.sender END as otherUser, " +
+           "MAX(m.createdAt) as lastMessageTime, " +
+           "COUNT(CASE WHEN m.receiver = :user AND m.isRead = false THEN 1 END) as unreadCount " +
+           "FROM Message m " +
+           "WHERE m.sender = :user OR m.receiver = :user " +
+           "GROUP BY otherUser " +
+           "ORDER BY lastMessageTime DESC")
+    List<Object[]> findUserConversations(@Param("user") User user, Pageable pageable);
+    
     @Query("SELECT m FROM Message m WHERE m.project = :project AND " +
            "((m.sender = :user1 AND m.receiver = :user2) OR " +
            "(m.sender = :user2 AND m.receiver = :user1)) " +

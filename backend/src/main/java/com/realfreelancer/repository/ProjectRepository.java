@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -17,11 +18,24 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
     
     Page<Project> findByStatus(Project.ProjectStatus status, Pageable pageable);
     
+    Page<Project> findByType(Project.ProjectType type, Pageable pageable);
+    
     Page<Project> findByClient(User client, Pageable pageable);
     
     Page<Project> findByFreelancer(User freelancer, Pageable pageable);
     
     List<Project> findByStatusAndDeadlineBefore(Project.ProjectStatus status, LocalDateTime deadline);
+    
+    // Search methods
+    Page<Project> findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase(
+        String title, String description, Pageable pageable);
+    
+    // Budget filtering methods
+    Page<Project> findByBudgetBetween(BigDecimal minBudget, BigDecimal maxBudget, Pageable pageable);
+    
+    Page<Project> findByBudgetGreaterThanEqual(BigDecimal minBudget, Pageable pageable);
+    
+    Page<Project> findByBudgetLessThanEqual(BigDecimal maxBudget, Pageable pageable);
     
     @Query("SELECT p FROM Project p JOIN p.requiredSkills s WHERE s IN :skills AND p.status = 'OPEN'")
     Page<Project> findByRequiredSkillsAndStatusOpen(@Param("skills") List<String> skills, Pageable pageable);
