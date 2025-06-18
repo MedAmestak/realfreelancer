@@ -57,11 +57,9 @@ export default function Header() {
             ) : (
               <div className="flex items-center space-x-4">
                 <Link href="/login" className="flex items-center space-x-2 text-gray-600 hover:text-primary-600 transition-colors">
-                  <LogIn className="w-4 h-4" />
                   <span>Login</span>
                 </Link>
                 <Link href="/register" className="btn-primary">
-                  <Plus className="w-4 h-4" />
                   <span>Sign Up</span>
                 </Link>
               </div>
@@ -110,12 +108,10 @@ export default function Header() {
                   </button>
                 ) : (
                   <div className="flex flex-col space-y-2">
-                    <Link href="/login" className="flex items-center space-x-2 text-gray-600 hover:text-primary-600 transition-colors">
-                      <LogIn className="w-4 h-4" />
+                    <Link href="/login" className="flex items-center justify-center space-x-2 text-gray-600 hover:text-primary-600 transition-colors">
                       <span>Login</span>
                     </Link>
                     <Link href="/register" className="btn-primary inline-flex items-center justify-center">
-                      <Plus className="w-4 h-4" />
                       <span>Sign Up</span>
                     </Link>
                   </div>

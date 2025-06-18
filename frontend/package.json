@@ -11,12 +11,12 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "next": "14.0.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
     "axios": "^1.6.0",
     "framer-motion": "^10.16.0",
     "lucide-react": "^0.292.0",
+    "next": "^14.2.30",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "react-hook-form": "^7.47.0",
     "react-hot-toast": "^2.4.1",
     "zustand": "^4.4.0"
@@ -35,4 +35,4 @@
   "engines": {
     "node": ">=18.0.0"
   }
-} 
+}

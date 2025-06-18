@@ -3,6 +3,7 @@ package com.realfreelancer.controller;
 import com.realfreelancer.model.Review;
 import com.realfreelancer.model.Project;
 import com.realfreelancer.model.User;
+import com.realfreelancer.model.Badge;
 import com.realfreelancer.repository.ReviewRepository;
 import com.realfreelancer.repository.ProjectRepository;
 import com.realfreelancer.repository.UserRepository;
