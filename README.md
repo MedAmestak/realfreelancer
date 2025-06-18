@@ -111,7 +111,7 @@ realfreelancer/
 
 ### Option 1: One-Click Setup
 ```bash
-git clone https://github.com/yourusername/realfreelancer.git
+git clone https://github.com/MedAmestak/realfreelancer.git
 cd realfreelancer
 chmod +x setup.sh
 ./setup.sh
@@ -270,7 +270,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Contact
 
-- **GitHub**: [@yourusername](https://github.com/yourusername)
+- **GitHub**: [@MedAmestak](https://github.com/MedAmestak)
 - **LinkedIn**: [Your Name](https://linkedin.com/in/yourprofile)
 - **Portfolio**: [your-portfolio.com](https://your-portfolio.com)
 
