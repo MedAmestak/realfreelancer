@@ -152,7 +152,6 @@
 
 ### Planned Features
 - **Real-time Chat**: WebSocket implementation
-- **Payment Integration**: Stripe/PayPal integration
 - **Advanced Analytics**: User behavior tracking
 - **Mobile App**: React Native version
 - **AI Matching**: Machine learning recommendations

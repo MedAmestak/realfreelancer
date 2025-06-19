@@ -56,7 +56,7 @@ docker-compose logs -f
 
 ### Backend (.env)
 ```env
-JWT_SECRET=your-super-secret-jwt-key-here
+JWT_SECRET=YOUR_JWT_SECRET
 DB_URL=jdbc:h2:mem:testdb
 SPRING_PROFILES_ACTIVE=dev
 ```

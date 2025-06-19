@@ -41,14 +41,14 @@ export function useAuth() {
     }
   }, [])
 
-  const login = async (username: string, password: string) => {
+  const login = async (email: string, password: string) => {
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ email, password }),
       })
 
       if (response.ok) {
@@ -73,9 +73,10 @@ export function useAuth() {
         return { success: true }
       } else {
         const errorData = await response.json()
-        return { success: false, error: errorData.message || 'Login failed' }
+        return { success: false, error: errorData || 'Login failed' }
       }
     } catch (error) {
+      console.error('Login error:', error)
       return { success: false, error: 'Network error' }
     }
   }

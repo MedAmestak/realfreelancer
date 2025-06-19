@@ -28,7 +28,7 @@ services:
       DB_USERNAME: postgres
       DB_PASSWORD: password
       DB_DRIVER: org.postgresql.Driver
-      JWT_SECRET: your-super-secret-jwt-key-here-make-it-long-and-random
+      JWT_SECRET: 8fa8f90911ec227d330d36a30d4eabdcec6de84fc2447e23999914e2bae22608
       SERVER_PORT: 8080
       SERVER_ADDRESS: 0.0.0.0
     ports:

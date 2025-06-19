@@ -66,8 +66,7 @@ The frontend will run on `http://localhost:3000`
 
 ### Backend (.env)
 ```env
-JWT_SECRET=your-super-secret-jwt-key-here
-DB_URL=jdbc:h2:mem:testdb
+JWT_SECRET=YOUR_JWT_SECRET
 DB_USERNAME=sa
 DB_PASSWORD=
 SPRING_PROFILES_ACTIVE=dev

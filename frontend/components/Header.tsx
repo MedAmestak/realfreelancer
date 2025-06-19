@@ -59,7 +59,7 @@ export default function Header() {
                 <Link href="/login" className="flex items-center space-x-2 text-gray-600 hover:text-primary-600 transition-colors">
                   <span>Login</span>
                 </Link>
-                <Link href="/register" className="btn-primary">
+                <Link href="/signup" className="btn-primary">
                   <span>Sign Up</span>
                 </Link>
               </div>

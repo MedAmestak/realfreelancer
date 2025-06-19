@@ -12,6 +12,10 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -32,7 +36,7 @@ public class AuthController {
     private UserService userService;
 
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@Valid @RequestBody AuthRequest authRequest) {
+    public ResponseEntity<?> registerUser(@Validated(AuthRequest.Registration.class) @RequestBody AuthRequest authRequest) {
         try {
             // Check if username or email already exists
             if (userService.existsByUsername(authRequest.getUsername())) {
@@ -75,20 +79,22 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody AuthRequest authRequest) {
         try {
+            // Find user by email
+            User user = userService.findByEmail(authRequest.getEmail())
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + authRequest.getEmail()));
+
+            // Create authentication token with email
             Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                    authRequest.getUsername(),
+                    authRequest.getEmail(), // Use email for authentication
                     authRequest.getPassword()
                 )
             );
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
-            String token = jwtTokenProvider.generateToken(authentication);
+            String token = jwtTokenProvider.generateToken(user.getEmail()); // Use email for token
             Date expiration = jwtTokenProvider.getExpirationDateFromToken(token);
-
-            User user = userService.findByUsername(authRequest.getUsername())
-                .orElseThrow(() -> new RuntimeException("User not found"));
 
             AuthResponse authResponse = new AuthResponse(token, user.getId(), 
                 user.getUsername(), user.getEmail());
@@ -99,8 +105,14 @@ public class AuthController {
 
             return ResponseEntity.ok(authResponse);
 
+        } catch (UsernameNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+        } catch (BadCredentialsException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid password");
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Invalid username or password");
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("An error occurred during login");
         }
     }
 

@@ -3,14 +3,11 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Search, Filter, Star, Users, Briefcase, Award } from 'lucide-react'
-import ProjectCard from '@/components/ProjectCard'
-import FilterBar from '@/components/FilterBar'
-import Header from '@/components/Header'
-import { Project } from '@/types/project'
+import Header from '../components/Header'
 
 export default function HomePage() {
-  const [projects, setProjects] = useState<Project[]>([])
-  const [filteredProjects, setFilteredProjects] = useState<Project[]>([])
+  const [projects, setProjects] = useState<any[]>([])
+  const [filteredProjects, setFilteredProjects] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedSkills, setSelectedSkills] = useState<string[]>([])
@@ -25,10 +22,12 @@ export default function HomePage() {
 
   const fetchProjects = async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/projects`)
+      const response = await fetch('http://localhost:8080/api/projects')
       if (response.ok) {
         const data = await response.json()
         setProjects(data.content || data)
+      } else {
+        console.error('Failed to fetch projects:', response.status)
       }
     } catch (error) {
       console.error('Error fetching projects:', error)
@@ -72,7 +71,7 @@ export default function HomePage() {
       <Header />
       
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-primary-600 to-purple-600 text-white py-20">
+      <section className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-20">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -83,10 +82,10 @@ export default function HomePage() {
             <h1 className="text-4xl md:text-6xl font-bold mb-6">
               RealFreelancer
             </h1>
-            <p className="text-xl md:text-2xl mb-8 text-primary-100">
+            <p className="text-xl md:text-2xl mb-8 text-blue-100">
               Free freelance platform for portfolio-building projects
             </p>
-            <p className="text-lg text-primary-200 mb-12 max-w-2xl mx-auto">
+            <p className="text-lg text-blue-200 mb-12 max-w-2xl mx-auto">
               Connect with developers, showcase your skills, and build amazing projects together. 
               Perfect for building your portfolio and gaining real-world experience.
             </p>
@@ -120,7 +119,7 @@ export default function HomePage() {
                 transition={{ duration: 0.6, delay: index * 0.1 }}
                 className="text-center"
               >
-                <stat.icon className="w-8 h-8 mx-auto mb-2 text-primary-600" />
+                <stat.icon className="w-8 h-8 mx-auto mb-2 text-blue-600" />
                 <div className="text-2xl font-bold text-gray-900">{stat.value}</div>
                 <div className="text-sm text-gray-600">{stat.label}</div>
               </motion.div>
@@ -135,10 +134,28 @@ export default function HomePage() {
           <div className="flex flex-col lg:flex-row gap-8">
             {/* Filters Sidebar */}
             <div className="lg:w-1/4">
-              <FilterBar
-                selectedSkills={selectedSkills}
-                onSkillsChange={setSelectedSkills}
-              />
+              <div className="bg-white rounded-lg shadow-sm p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Filter by Skills</h3>
+                <div className="space-y-2">
+                  {['React', 'Node.js', 'Python', 'Java', 'JavaScript', 'TypeScript'].map(skill => (
+                    <label key={skill} className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={selectedSkills.includes(skill)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedSkills([...selectedSkills, skill])
+                          } else {
+                            setSelectedSkills(selectedSkills.filter(s => s !== skill))
+                          }
+                        }}
+                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      />
+                      <span className="ml-2 text-sm text-gray-700">{skill}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
             </div>
 
             {/* Projects Grid */}
@@ -156,7 +173,7 @@ export default function HomePage() {
               {loading ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {[...Array(6)].map((_, i) => (
-                    <div key={i} className="card animate-pulse">
+                    <div key={i} className="bg-white rounded-lg shadow-sm p-6 animate-pulse">
                       <div className="h-4 bg-gray-200 rounded mb-4"></div>
                       <div className="h-3 bg-gray-200 rounded mb-2"></div>
                       <div className="h-3 bg-gray-200 rounded mb-4"></div>
@@ -175,8 +192,21 @@ export default function HomePage() {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.4, delay: index * 0.1 }}
+                      className="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow"
                     >
-                      <ProjectCard project={project} />
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">{project.title}</h3>
+                      <p className="text-gray-600 text-sm mb-4 line-clamp-3">{project.description}</p>
+                      <div className="flex items-center justify-between text-sm text-gray-500 mb-3">
+                        <span>${project.budget}</span>
+                        <span>{project.status}</span>
+                      </div>
+                      <div className="flex flex-wrap gap-1">
+                        {project.requiredSkills?.slice(0, 3).map((skill: string) => (
+                          <span key={skill} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
+                            {skill}
+                          </span>
+                        ))}
+                      </div>
                     </motion.div>
                   ))}
                 </div>

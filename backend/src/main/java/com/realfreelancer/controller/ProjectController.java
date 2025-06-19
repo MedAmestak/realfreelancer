@@ -9,6 +9,7 @@ import com.realfreelancer.repository.UserRepository;
 import com.realfreelancer.service.ProjectService;
 import com.realfreelancer.dto.ProjectRequest;
 import com.realfreelancer.dto.ApplicationRequest;
+import com.realfreelancer.dto.ProjectDTO;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -24,6 +25,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/projects")
@@ -59,7 +61,21 @@ public class ProjectController {
             Page<Project> projects = projectService.getFilteredProjects(
                 status, type, skills, minBudget, maxBudget, search, pageable
             );
-            return ResponseEntity.ok(projects);
+            // Map to DTOs
+            List<ProjectDTO> dtos = projects.getContent().stream().map(project -> {
+                ProjectDTO dto = new ProjectDTO();
+                dto.setId(project.getId());
+                dto.setTitle(project.getTitle());
+                dto.setDescription(project.getDescription());
+                dto.setBudget(project.getBudget());
+                dto.setDeadline(project.getDeadline());
+                dto.setRequiredSkills(project.getRequiredSkills());
+                dto.setStatus(project.getStatus().name());
+                dto.setType(project.getType().name());
+                dto.setClientUsername(project.getClient() != null ? project.getClient().getUsername() : null);
+                return dto;
+            }).collect(Collectors.toList());
+            return ResponseEntity.ok(dtos);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Error fetching projects: " + e.getMessage());
         }

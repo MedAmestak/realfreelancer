@@ -7,9 +7,8 @@ import jakarta.validation.constraints.Size;
 import java.util.Set;
 
 public class AuthRequest {
-    
-    @NotBlank(message = "Username is required")
-    @Size(min = 3, max = 50, message = "Username must be between 3 and 50 characters")
+    @NotBlank(message = "Username is required", groups = Registration.class)
+    @Size(min = 3, max = 50, message = "Username must be between 3 and 50 characters", groups = Registration.class)
     private String username;
     
     @NotBlank(message = "Email is required")
@@ -24,16 +23,10 @@ public class AuthRequest {
     private Set<String> skills;
     private String bio;
     
-    // Constructors
-    public AuthRequest() {}
+    public interface Registration {}
+    public interface Login {}
     
-    public AuthRequest(String username, String email, String password) {
-        this.username = username;
-        this.email = email;
-        this.password = password;
-    }
-    
-    // Getters and Setters
+    // Getters and setters
     public String getUsername() {
         return username;
     }

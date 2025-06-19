@@ -52,14 +52,14 @@ public class DashboardController {
     public ResponseEntity<?> getUserDashboard() {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            String username = authentication.getName();
-            User user = userRepository.findByUsername(username)
+            String email = authentication.getName();
+            User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
             Map<String, Object> dashboard = new HashMap<>();
             
             // User analytics
-            Map<String, Object> userAnalytics = analyticsService.getUserAnalytics(username);
+            Map<String, Object> userAnalytics = analyticsService.getUserAnalytics(user.getUsername());
             dashboard.put("analytics", userAnalytics);
             
             // Recent activity
@@ -117,8 +117,8 @@ public class DashboardController {
     public ResponseEntity<?> getUserStats() {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            String username = authentication.getName();
-            User user = userRepository.findByUsername(username)
+            String email = authentication.getName();
+            User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
             Map<String, Object> stats = new HashMap<>();
@@ -148,8 +148,8 @@ public class DashboardController {
     ) {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            String username = authentication.getName();
-            User user = userRepository.findByUsername(username)
+            String email = authentication.getName();
+            User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
             Map<String, Object> earnings = new HashMap<>();
@@ -183,8 +183,8 @@ public class DashboardController {
     public ResponseEntity<?> getPerformanceMetrics() {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            String username = authentication.getName();
-            User user = userRepository.findByUsername(username)
+            String email = authentication.getName();
+            User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
             Map<String, Object> performance = new HashMap<>();
@@ -197,17 +197,9 @@ public class DashboardController {
             performance.put("communicationScore", 4.8); // rating
             performance.put("qualityScore", 4.6); // rating
             
-            // Performance trends
-            performance.put("trends", Map.of(
-                "responseTime", "improving",
-                "completionRate", "stable",
-                "clientSatisfaction", "improving",
-                "onTimeDelivery", "stable"
-            ));
-            
             return ResponseEntity.ok(performance);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Error fetching performance: " + e.getMessage());
+            return ResponseEntity.badRequest().body("Error fetching performance metrics: " + e.getMessage());
         }
     }
 } 

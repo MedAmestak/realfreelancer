@@ -1,6 +1,8 @@
 package com.realfreelancer.repository;
 
 import com.realfreelancer.model.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -36,4 +38,12 @@ public interface UserRepository extends JpaRepository<User, Long> {
     
     @Query("SELECT u FROM User u WHERE u.username LIKE %:searchTerm% OR u.email LIKE %:searchTerm%")
     List<User> searchUsers(@Param("searchTerm") String searchTerm);
+    
+    // Method for searching freelancers by username or bio
+    Page<User> findByUsernameContainingIgnoreCaseOrBioContainingIgnoreCase(
+        String username, String bio, Pageable pageable);
+    
+    // Add debug query
+    @Query("SELECT u FROM User u WHERE u.email = :email")
+    Optional<User> findByEmailWithDebug(@Param("email") String email);
 } 

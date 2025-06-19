@@ -36,7 +36,7 @@ server:
 
 # JWT Configuration
 jwt:
-  secret: ${JWT_SECRET:your-super-secret-jwt-key-here-make-it-long-and-random}
+  secret: ${JWT_SECRET:8fa8f90911ec227d330d36a30d4eabdcec6de84fc2447e23999914e2bae22608}
   expiration: ${JWT_EXPIRATION:86400000}
 
 # CORS Configuration
