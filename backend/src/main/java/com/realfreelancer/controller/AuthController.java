@@ -72,7 +72,7 @@ public class AuthController {
             return ResponseEntity.ok(authResponse);
 
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Registration failed: " + e.getMessage());
+            return ResponseEntity.badRequest().body("Registration failed: Invalid data provided");
         }
     }
 
@@ -128,7 +128,7 @@ public class AuthController {
             return ResponseEntity.ok(user);
 
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Failed to get user profile: " + e.getMessage());
+            return ResponseEntity.badRequest().body("Failed to get user profile: Authentication error");
         }
     }
 

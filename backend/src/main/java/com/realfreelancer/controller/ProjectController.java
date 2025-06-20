@@ -77,7 +77,7 @@ public class ProjectController {
             }).collect(Collectors.toList());
             return ResponseEntity.ok(dtos);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Error fetching projects: " + e.getMessage());
+            return ResponseEntity.badRequest().body("Error fetching projects: Server error");
         }
     }
 
@@ -96,7 +96,7 @@ public class ProjectController {
                 return ResponseEntity.notFound().build();
             }
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Error fetching project: " + e.getMessage());
+            return ResponseEntity.badRequest().body("Error fetching project: Project not found");
         }
     }
 
@@ -121,7 +121,7 @@ public class ProjectController {
             Project savedProject = projectRepository.save(project);
             return ResponseEntity.ok(savedProject);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Error creating project: " + e.getMessage());
+            return ResponseEntity.badRequest().body("Error creating project: Invalid project data");
         }
     }
 
@@ -152,7 +152,7 @@ public class ProjectController {
             Project updatedProject = projectRepository.save(project);
             return ResponseEntity.ok(updatedProject);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Error updating project: " + e.getMessage());
+            return ResponseEntity.badRequest().body("Error updating project: Invalid project data");
         }
     }
 
@@ -176,7 +176,7 @@ public class ProjectController {
             projectRepository.delete(project);
             return ResponseEntity.ok("Project deleted successfully");
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Error deleting project: " + e.getMessage());
+            return ResponseEntity.badRequest().body("Error deleting project: Project not found");
         }
     }
 
@@ -224,7 +224,7 @@ public class ProjectController {
 
             return ResponseEntity.ok(savedApplication);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Error applying for project: " + e.getMessage());
+            return ResponseEntity.badRequest().body("Error applying for project: Invalid application data");
         }
     }
 
@@ -248,7 +248,7 @@ public class ProjectController {
             List<Application> applications = applicationRepository.findByProject(project, PageRequest.of(0, 100)).getContent();
             return ResponseEntity.ok(applications);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Error fetching applications: " + e.getMessage());
+            return ResponseEntity.badRequest().body("Error fetching applications: Server error");
         }
     }
 
@@ -301,7 +301,7 @@ public class ProjectController {
 
             return ResponseEntity.ok(application);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Error updating application: " + e.getMessage());
+            return ResponseEntity.badRequest().body("Error updating application: Invalid application data");
         }
     }
 
@@ -321,7 +321,7 @@ public class ProjectController {
             Page<Project> projects = projectRepository.findByClient(user, pageable);
             return ResponseEntity.ok(projects);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Error fetching projects: " + e.getMessage());
+            return ResponseEntity.badRequest().body("Error fetching projects: Server error");
         }
     }
 
@@ -341,7 +341,7 @@ public class ProjectController {
             Page<Application> applications = applicationRepository.findByFreelancer(user, pageable);
             return ResponseEntity.ok(applications);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Error fetching applications: " + e.getMessage());
+            return ResponseEntity.badRequest().body("Error fetching applications: Server error");
         }
     }
 
@@ -352,7 +352,7 @@ public class ProjectController {
             List<Project> featuredProjects = projectRepository.findFeaturedOpenProjects();
             return ResponseEntity.ok(featuredProjects);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Error fetching featured projects: " + e.getMessage());
+            return ResponseEntity.badRequest().body("Error fetching featured projects: Server error");
         }
     }
 } 

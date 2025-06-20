@@ -29,10 +29,7 @@ public class UserService {
     }
 
     public Optional<User> findByEmail(String email) {
-        Optional<User> user = userRepository.findByEmailWithDebug(email);
-        System.out.println("Finding user by email: " + email); // Debug log
-        user.ifPresent(u -> System.out.println("Found user: " + u.getUsername() + " with password hash: " + u.getPassword())); // Debug log
-        return user;
+        return userRepository.findByEmail(email);
     }
 
     public Optional<User> findById(Long id) {

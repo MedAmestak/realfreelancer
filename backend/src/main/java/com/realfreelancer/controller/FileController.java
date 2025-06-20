@@ -71,7 +71,7 @@ public class FileController {
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Error uploading file: " + e.getMessage());
+            return ResponseEntity.badRequest().body("Error uploading file: File upload failed");
         }
     }
 
@@ -88,7 +88,7 @@ public class FileController {
                 return ResponseEntity.notFound().build();
             }
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Error deleting file: " + e.getMessage());
+            return ResponseEntity.badRequest().body("Error deleting file: File not found");
         }
     }
 

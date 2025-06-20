@@ -6,17 +6,44 @@ import { User, Edit, Save, X, Star, Award, Briefcase, MessageSquare } from 'luci
 import Header from '../../components/Header'
 import { useAuth } from '../../hooks/useAuth'
 
+interface Profile {
+  id: number;
+  username: string;
+  email: string;
+  bio: string;
+  githubLink: string;
+  skills: string[];
+  reputationPoints: number;
+  isVerified: boolean;
+  avatarUrl?: string;
+  createdAt: string;
+  stats: {
+    totalProjects: number;
+    completedProjects: number;
+    averageRating: number;
+    totalReviews: number;
+  };
+}
+
+interface FormData {
+  username: string;
+  email: string;
+  bio: string;
+  githubLink: string;
+  skills: string[];
+}
+
 export default function ProfilePage() {
   const { user, getAuthHeaders } = useAuth()
-  const [profile, setProfile] = useState<any>(null)
+  const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(false)
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     username: '',
     email: '',
     bio: '',
     githubLink: '',
-    skills: [] as string[]
+    skills: []
   })
 
   const commonSkills = [
@@ -60,7 +87,7 @@ export default function ProfilePage() {
         })
       }
     } catch (error) {
-      console.error('Error fetching profile:', error)
+      console.error('Error fetching profile: Network error')
     } finally {
       setLoading(false)
     }
@@ -75,6 +102,11 @@ export default function ProfilePage() {
     }))
   }
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
   const handleSave = async () => {
     try {
       const headers: Record<string, string> = {
@@ -86,18 +118,18 @@ export default function ProfilePage() {
         headers.Authorization = authHeaders.Authorization
       }
 
-      const response = await fetch('http://localhost:8080/api/users/profile', {
+      const response = await fetch('http://localhost:8080/api/auth/profile', {
         method: 'PUT',
         headers,
         body: JSON.stringify(formData)
       })
 
       if (response.ok) {
+        await fetchProfile()
         setEditing(false)
-        fetchProfile()
       }
     } catch (error) {
-      console.error('Error updating profile:', error)
+      console.error('Error updating profile: Network error')
     }
   }
 
@@ -172,12 +204,12 @@ export default function ProfilePage() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="text-center p-4 bg-gray-50 rounded-lg">
                 <Briefcase className="w-6 h-6 mx-auto text-blue-600 mb-2" />
-                <div className="text-2xl font-bold text-gray-900">{profile?.totalProjects || 0}</div>
+                <div className="text-2xl font-bold text-gray-900">{profile?.stats.totalProjects || 0}</div>
                 <div className="text-sm text-gray-600">Projects</div>
               </div>
               <div className="text-center p-4 bg-gray-50 rounded-lg">
                 <Star className="w-6 h-6 mx-auto text-yellow-600 mb-2" />
-                <div className="text-2xl font-bold text-gray-900">{profile?.averageRating?.toFixed(1) || '0.0'}</div>
+                <div className="text-2xl font-bold text-gray-900">{profile?.stats.averageRating?.toFixed(1) || '0.0'}</div>
                 <div className="text-sm text-gray-600">Rating</div>
               </div>
               <div className="text-center p-4 bg-gray-50 rounded-lg">
@@ -187,7 +219,7 @@ export default function ProfilePage() {
               </div>
               <div className="text-center p-4 bg-gray-50 rounded-lg">
                 <MessageSquare className="w-6 h-6 mx-auto text-green-600 mb-2" />
-                <div className="text-2xl font-bold text-gray-900">{profile?.totalReviews || 0}</div>
+                <div className="text-2xl font-bold text-gray-900">{profile?.stats.totalReviews || 0}</div>
                 <div className="text-sm text-gray-600">Reviews</div>
               </div>
             </div>
@@ -203,8 +235,9 @@ export default function ProfilePage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">Username</label>
                   <input
                     type="text"
+                    name="username"
                     value={formData.username}
-                    onChange={(e) => setFormData(prev => ({ ...prev, username: e.target.value }))}
+                    onChange={handleInputChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   />
                 </div>
@@ -213,8 +246,9 @@ export default function ProfilePage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
                   <input
                     type="email"
+                    name="email"
                     value={formData.email}
-                    onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                    onChange={handleInputChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   />
                 </div>
@@ -222,8 +256,9 @@ export default function ProfilePage() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Bio</label>
                   <textarea
+                    name="bio"
                     value={formData.bio}
-                    onChange={(e) => setFormData(prev => ({ ...prev, bio: e.target.value }))}
+                    onChange={handleInputChange}
                     rows={4}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     placeholder="Tell us about yourself..."
@@ -234,8 +269,9 @@ export default function ProfilePage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">GitHub Link</label>
                   <input
                     type="url"
+                    name="githubLink"
                     value={formData.githubLink}
-                    onChange={(e) => setFormData(prev => ({ ...prev, githubLink: e.target.value }))}
+                    onChange={handleInputChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     placeholder="https://github.com/username"
                   />

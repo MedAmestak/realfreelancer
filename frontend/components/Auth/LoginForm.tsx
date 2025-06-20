@@ -6,21 +6,28 @@ import { useAuth } from "../../hooks/useAuth";
 const LoginForm: React.FC = () => {
   const { login } = useAuth();
   const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [formData, setFormData] = useState({
+    email: '',
+    password: ''
+  });
+  const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
+    setError('');
     setSubmitting(true);
-    const result = await login(email, password);
+    const result = await login(formData.email, formData.password);
     setSubmitting(false);
     if (result.success) {
-      router.push("/dashboard");
+      router.push('/dashboard');
     } else {
-      setError(result.error || "Invalid email or password");
+      setError(result.error || 'Invalid email or password');
     }
   };
 
@@ -32,8 +39,9 @@ const LoginForm: React.FC = () => {
         <label className="block text-gray-700 mb-2">Email</label>
         <input
           type="email"
-          value={email}
-          onChange={e => setEmail(e.target.value)}
+          name="email"
+          value={formData.email}
+          onChange={handleInputChange}
           className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
           required
         />
@@ -42,8 +50,9 @@ const LoginForm: React.FC = () => {
         <label className="block text-gray-700 mb-2">Password</label>
         <input
           type="password"
-          value={password}
-          onChange={e => setPassword(e.target.value)}
+          name="password"
+          value={formData.password}
+          onChange={handleInputChange}
           className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
           required
         />

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Search, 
@@ -22,13 +22,37 @@ interface SearchFilters {
   maxBudget: number;
   experienceLevel: string;
   projectType: string;
-  sortBy: string;
-  sortOrder: string;
+  sortBy: 'createdAt' | 'budget' | 'rating' | 'deadline';
+  sortOrder: 'asc' | 'desc';
 }
 
 interface SearchSuggestion {
   text: string;
-  type: 'skill' | 'location' | 'project';
+  type: 'skill' | 'keyword';
+}
+
+interface SearchResult {
+  id: number;
+  title: string;
+  description: string;
+  budget: number;
+  deadline: string;
+  requiredSkills: string[];
+  type: 'FREE' | 'PAID';
+  status: 'OPEN' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
+  client: {
+    id: number;
+    username: string;
+    rating: number;
+  };
+  createdAt: string;
+  matchScore?: number;
+}
+
+interface TrendingSkill {
+  skill: string;
+  count: number;
+  trend: number;
 }
 
 const AdvancedSearch: React.FC = () => {
@@ -37,7 +61,7 @@ const AdvancedSearch: React.FC = () => {
     skills: [],
     location: '',
     minBudget: 0,
-    maxBudget: 10000,
+    maxBudget: 0,
     experienceLevel: '',
     projectType: '',
     sortBy: 'createdAt',
@@ -46,9 +70,9 @@ const AdvancedSearch: React.FC = () => {
 
   const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [trendingSkills, setTrendingSkills] = useState<any[]>([]);
+  const [trendingSkills, setTrendingSkills] = useState<TrendingSkill[]>([]);
   const [loading, setLoading] = useState(false);
-  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const searchRef = useRef<HTMLDivElement>(null);
 
   const popularSkills = [
@@ -87,7 +111,7 @@ const AdvancedSearch: React.FC = () => {
         setTrendingSkills(data);
       }
     } catch (error) {
-      console.error('Error fetching trending skills:', error);
+      console.error('Error fetching trending skills: Network error');
     }
   };
 
@@ -102,7 +126,7 @@ const AdvancedSearch: React.FC = () => {
         })));
       }
     } catch (error) {
-      console.error('Error fetching suggestions:', error);
+      console.error('Error fetching suggestions: Network error');
     }
   };
 
@@ -126,7 +150,7 @@ const AdvancedSearch: React.FC = () => {
         setSearchResults(data.content || []);
       }
     } catch (error) {
-      console.error('Error performing search:', error);
+      console.error('Error performing search: Network error');
     } finally {
       setLoading(false);
     }
@@ -156,12 +180,28 @@ const AdvancedSearch: React.FC = () => {
       skills: [],
       location: '',
       minBudget: 0,
-      maxBudget: 10000,
+      maxBudget: 0,
       experienceLevel: '',
       projectType: '',
       sortBy: 'createdAt',
       sortOrder: 'desc'
     });
+  };
+
+  const handleSkillClick = useCallback((skillName: string) => {
+    handleSkillToggle(skillName);
+  }, [handleSkillToggle]);
+
+  const handleSearchClick = useCallback(() => {
+    performSearch();
+  }, [performSearch]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    setFilters(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleNumberInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFilters(prev => ({ ...prev, [e.target.name]: Number(e.target.value) }));
   };
 
   const FilterChip = ({ label, onRemove }: { label: string; onRemove: () => void }) => (
@@ -200,14 +240,15 @@ const AdvancedSearch: React.FC = () => {
             <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
             <input
               type="text"
+              name="query"
               placeholder="Search for projects, skills, or keywords..."
               value={filters.query}
-              onChange={(e) => setFilters(prev => ({ ...prev, query: e.target.value }))}
+              onChange={handleInputChange}
               onFocus={() => setShowSuggestions(true)}
               className="w-full pl-12 pr-4 py-4 text-lg border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
             <button
-              onClick={performSearch}
+              onClick={handleSearchClick}
               className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
             >
               Search
@@ -320,8 +361,9 @@ const AdvancedSearch: React.FC = () => {
                     <label className="text-xs text-gray-500">Min Budget</label>
                     <input
                       type="number"
+                      name="minBudget"
                       value={filters.minBudget}
-                      onChange={(e) => setFilters(prev => ({ ...prev, minBudget: Number(e.target.value) }))}
+                      onChange={handleNumberInputChange}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
@@ -329,8 +371,9 @@ const AdvancedSearch: React.FC = () => {
                     <label className="text-xs text-gray-500">Max Budget</label>
                     <input
                       type="number"
+                      name="maxBudget"
                       value={filters.maxBudget}
-                      onChange={(e) => setFilters(prev => ({ ...prev, maxBudget: Number(e.target.value) }))}
+                      onChange={handleNumberInputChange}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
@@ -341,8 +384,9 @@ const AdvancedSearch: React.FC = () => {
               <div className="mb-6">
                 <h4 className="text-sm font-medium text-gray-700 mb-3">Experience Level</h4>
                 <select
+                  name="experienceLevel"
                   value={filters.experienceLevel}
-                  onChange={(e) => setFilters(prev => ({ ...prev, experienceLevel: e.target.value }))}
+                  onChange={handleInputChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">Any Level</option>
@@ -356,8 +400,9 @@ const AdvancedSearch: React.FC = () => {
               <div className="mb-6">
                 <h4 className="text-sm font-medium text-gray-700 mb-3">Project Type</h4>
                 <select
+                  name="projectType"
                   value={filters.projectType}
-                  onChange={(e) => setFilters(prev => ({ ...prev, projectType: e.target.value }))}
+                  onChange={handleInputChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">Any Type</option>
@@ -371,8 +416,9 @@ const AdvancedSearch: React.FC = () => {
               <div className="mb-6">
                 <h4 className="text-sm font-medium text-gray-700 mb-3">Sort By</h4>
                 <select
+                  name="sortBy"
                   value={filters.sortBy}
-                  onChange={(e) => setFilters(prev => ({ ...prev, sortBy: e.target.value }))}
+                  onChange={handleInputChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="createdAt">Date Posted</option>
@@ -383,7 +429,7 @@ const AdvancedSearch: React.FC = () => {
               </div>
 
               <button
-                onClick={performSearch}
+                onClick={handleSearchClick}
                 disabled={loading}
                 className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
               >
@@ -401,16 +447,16 @@ const AdvancedSearch: React.FC = () => {
                 Trending Skills
               </h3>
               <div className="flex flex-wrap gap-2">
-                {trendingSkills.map((skill, index) => (
-                  <motion.button
+                {trendingSkills.map((skill) => (
+                  <motion.div
                     key={skill.skill}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    onClick={() => handleSkillToggle(skill.skill)}
+                    onClick={() => handleSkillClick(skill.skill)}
                     className="px-3 py-1 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-full text-sm font-medium hover:shadow-md transition-all"
                   >
                     {skill.skill}
-                  </motion.button>
+                  </motion.div>
                 ))}
               </div>
             </div>
