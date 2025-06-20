@@ -153,10 +153,11 @@ export default function PostProjectPage() {
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
                     Project Title *
                   </label>
                   <input
+                    id="title"
                     type="text"
                     name="title"
                     value={formData.title}
@@ -167,10 +168,11 @@ export default function PostProjectPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="type" className="block text-sm font-medium text-gray-700 mb-2">
                     Project Type *
                   </label>
                   <select
+                    id="type"
                     name="type"
                     value={formData.type}
                     onChange={handleInputChange}
@@ -183,10 +185,11 @@ export default function PostProjectPage() {
               </div>
 
               <div className="mt-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
                   Project Description * (minimum 20 characters)
                 </label>
                 <textarea
+                  id="description"
                   name="description"
                   value={formData.description}
                   onChange={handleInputChange}
@@ -208,10 +211,11 @@ export default function PostProjectPage() {
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="budget" className="block text-sm font-medium text-gray-700 mb-2">
                     Budget (USD)
                   </label>
                   <input
+                    id="budget"
                     type="number"
                     name="budget"
                     value={formData.budget}
@@ -222,10 +226,11 @@ export default function PostProjectPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="deadline" className="block text-sm font-medium text-gray-700 mb-2">
                     Deadline *
                   </label>
                   <input
+                    id="deadline"
                     type="date"
                     value={formData.deadline}
                     onChange={(e) => setFormData(prev => ({ ...prev, deadline: e.target.value }))}
