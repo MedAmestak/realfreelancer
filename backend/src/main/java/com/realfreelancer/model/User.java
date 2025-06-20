@@ -123,7 +123,7 @@ public class User {
     }
     
     public void setSkills(Set<String> skills) {
-        this.skills = skills;
+        this.skills = (skills != null) ? new HashSet<>(skills) : new HashSet<>();
     }
     
     public String getBio() {

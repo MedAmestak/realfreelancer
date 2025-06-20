@@ -3,6 +3,7 @@ package com.realfreelancer.dto;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Set;
+import java.util.HashSet;
 
 public class ProjectDTO {
     private Long id;
@@ -27,7 +28,7 @@ public class ProjectDTO {
     public LocalDateTime getDeadline() { return deadline; }
     public void setDeadline(LocalDateTime deadline) { this.deadline = deadline; }
     public Set<String> getRequiredSkills() { return requiredSkills; }
-    public void setRequiredSkills(Set<String> requiredSkills) { this.requiredSkills = requiredSkills; }
+    public void setRequiredSkills(Set<String> requiredSkills) { this.requiredSkills = (requiredSkills != null) ? new HashSet<>(requiredSkills) : null; }
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
     public String getType() { return type; }

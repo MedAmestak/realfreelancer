@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 import java.util.Set;
+import java.util.HashSet;
 
 public class AuthRequest {
     @NotBlank(message = "Username is required", groups = Registration.class)
@@ -64,7 +65,7 @@ public class AuthRequest {
     }
     
     public void setSkills(Set<String> skills) {
-        this.skills = skills;
+        this.skills = (skills != null) ? new HashSet<>(skills) : null;
     }
     
     public String getBio() {
