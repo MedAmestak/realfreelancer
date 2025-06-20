@@ -49,17 +49,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    // Check for existing token on app load
-    const savedToken = localStorage.getItem('token');
-    if (savedToken) {
-      setToken(savedToken);
-      fetchUserProfile(savedToken);
-    } else {
-      setLoading(false);
-    }
-  }, []);
-
   const fetchUserProfile = async (authToken: string) => {
     try {
       const response = await fetch('http://localhost:8080/api/auth/profile', {
@@ -84,6 +73,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    // Check for existing token on app load
+    const savedToken = localStorage.getItem('token');
+    if (savedToken) {
+      setToken(savedToken);
+      fetchUserProfile(savedToken);
+    } else {
+      setLoading(false);
+    }
+  }, []);
 
   const login = async (username: string, password: string): Promise<boolean> => {
     try {

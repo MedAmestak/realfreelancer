@@ -83,20 +83,6 @@ const AdvancedSearch: React.FC = () => {
   const experienceLevels = ['Beginner', 'Intermediate', 'Expert'];
   const projectTypes = ['Fixed Price', 'Hourly', 'Free'];
 
-  useEffect(() => {
-    fetchTrendingSkills();
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  useEffect(() => {
-    if (filters.query.length > 2) {
-      fetchSuggestions(filters.query);
-    } else {
-      setSuggestions([]);
-    }
-  }, [filters.query]);
-
   const handleClickOutside = (event: MouseEvent) => {
     if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
       setShowSuggestions(false);
@@ -129,6 +115,20 @@ const AdvancedSearch: React.FC = () => {
       console.error('Error fetching suggestions: Network error');
     }
   };
+
+  useEffect(() => {
+    fetchTrendingSkills();
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    if (filters.query.length > 2) {
+      fetchSuggestions(filters.query);
+    } else {
+      setSuggestions([]);
+    }
+  }, [filters.query]);
 
   const performSearch = async () => {
     setLoading(true);

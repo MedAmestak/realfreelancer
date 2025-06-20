@@ -57,12 +57,6 @@ export default function ProfilePage() {
     'Machine Learning', 'AI', 'Data Science', 'Blockchain'
   ]
 
-  useEffect(() => {
-    if (user) {
-      fetchProfile()
-    }
-  }, [user])
-
   const fetchProfile = async () => {
     try {
       const headers: Record<string, string> = {}
@@ -92,6 +86,12 @@ export default function ProfilePage() {
       setLoading(false)
     }
   }
+
+  useEffect(() => {
+    if (user) {
+      fetchProfile()
+    }
+  }, [user])
 
   const handleSkillToggle = (skill: string) => {
     setFormData(prev => ({
