@@ -8,6 +8,7 @@ import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Set;
+import java.util.HashSet;
 
 public class ProjectRequest {
     
@@ -38,7 +39,7 @@ public class ProjectRequest {
                          BigDecimal budget, LocalDateTime deadline) {
         this.title = title;
         this.description = description;
-        this.requiredSkills = requiredSkills;
+        this.requiredSkills = (requiredSkills != null) ? new HashSet<>(requiredSkills) : null;
         this.budget = budget;
         this.deadline = deadline;
     }
@@ -65,7 +66,7 @@ public class ProjectRequest {
     }
     
     public void setRequiredSkills(Set<String> requiredSkills) {
-        this.requiredSkills = requiredSkills;
+        this.requiredSkills = (requiredSkills != null) ? new HashSet<>(requiredSkills) : null;
     }
     
     public BigDecimal getBudget() {

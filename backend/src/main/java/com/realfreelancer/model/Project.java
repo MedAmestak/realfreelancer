@@ -129,7 +129,7 @@ public class Project {
     }
     
     public void setRequiredSkills(Set<String> requiredSkills) {
-        this.requiredSkills = requiredSkills;
+        this.requiredSkills = (requiredSkills != null) ? new HashSet<>(requiredSkills) : new HashSet<>();
     }
     
     public BigDecimal getBudget() {
