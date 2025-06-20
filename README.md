@@ -279,8 +279,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 📞 Contact
 
 - **GitHub**: [@MedAmestak](https://github.com/MedAmestak)
-- **LinkedIn**: [Your Name](https://linkedin.com/in/yourprofile)
-- **Portfolio**: [your-portfolio.com](https://your-portfolio.com)
+- **LinkedIn**: [Mohamed Amestak](https://www.linkedin.com/in/mohamed-amestak-3b9153195/)
 
 ---
 
