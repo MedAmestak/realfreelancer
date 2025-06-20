@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Bell, 
@@ -19,22 +19,30 @@ import {
 
 interface Notification {
   id: number;
+  type: 'PROJECT_APPLICATION' | 'NEW_MESSAGE' | 'REVIEW_RECEIVED' | 'BADGE_EARNED' | 'SYSTEM_ANNOUNCEMENT';
   title: string;
   message: string;
-  type: string;
   isRead: boolean;
   createdAt: string;
-  actionUrl?: string;
-  icon?: string;
+  link?: string;
+  metadata?: {
+    projectId?: number;
+    messageId?: number;
+    reviewId?: number;
+    badgeId?: number;
+  };
 }
 
-const NotificationCenter: React.FC = () => {
+interface NotificationCenterProps {}
+
+const NotificationCenter: React.FC<NotificationCenterProps> = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'all' | 'unread' | 'settings'>('all');
   const wsRef = useRef<WebSocket | null>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchNotifications();
@@ -49,29 +57,29 @@ const NotificationCenter: React.FC = () => {
   }, []);
 
   const setupWebSocket = () => {
-    const token = localStorage.getItem('token');
-    if (!token) return;
+    try {
+      const ws = new WebSocket('ws://localhost:8080/ws');
+      wsRef.current = ws;
 
-    const ws = new WebSocket(`ws://localhost:8080/ws?token=${token}`);
-    wsRef.current = ws;
+      ws.onopen = () => {
+        console.log('WebSocket connected');
+      };
 
-    ws.onopen = () => {
-      console.log('WebSocket connected');
-    };
+      ws.onmessage = (event) => {
+        const notification = JSON.parse(event.data);
+        handleNewNotification(notification);
+      };
 
-    ws.onmessage = (event) => {
-      const notification = JSON.parse(event.data);
-      handleNewNotification(notification);
-    };
+      ws.onerror = (error) => {
+        console.error('WebSocket error: Connection failed');
+      };
 
-    ws.onerror = (error) => {
-      console.error('WebSocket error:', error);
-    };
-
-    ws.onclose = () => {
-      console.log('WebSocket disconnected');
-      setTimeout(setupWebSocket, 5000);
-    };
+      ws.onclose = () => {
+        console.log('WebSocket disconnected');
+      };
+    } catch (error) {
+      console.error('WebSocket error: Connection failed');
+    }
   };
 
   const handleNewNotification = (notification: Notification) => {
@@ -80,7 +88,6 @@ const NotificationCenter: React.FC = () => {
   };
 
   const fetchNotifications = async () => {
-    setLoading(true);
     try {
       const response = await fetch('/api/notifications', {
         headers: {
@@ -93,9 +100,7 @@ const NotificationCenter: React.FC = () => {
         setNotifications(data.content || []);
       }
     } catch (error) {
-      console.error('Error fetching notifications:', error);
-    } finally {
-      setLoading(false);
+      console.error('Error fetching notifications: Network error');
     }
   };
 
@@ -112,7 +117,7 @@ const NotificationCenter: React.FC = () => {
         setUnreadCount(data.unreadCount || 0);
       }
     } catch (error) {
-      console.error('Error fetching unread count:', error);
+      console.error('Error fetching unread count: Network error');
     }
   };
 
@@ -126,17 +131,13 @@ const NotificationCenter: React.FC = () => {
       });
       
       if (response.ok) {
-        setNotifications(prev => 
-          prev.map(notif => 
-            notif.id === notificationId 
-              ? { ...notif, isRead: true }
-              : notif
-          )
-        );
+        setNotifications(prev => prev.map(notif => 
+          notif.id === notificationId ? { ...notif, isRead: true } : notif
+        ));
         setUnreadCount(prev => Math.max(0, prev - 1));
       }
     } catch (error) {
-      console.error('Error marking notification as read:', error);
+      console.error('Error marking notification as read: Network error');
     }
   };
 
@@ -154,7 +155,7 @@ const NotificationCenter: React.FC = () => {
         setUnreadCount(0);
       }
     } catch (error) {
-      console.error('Error marking all notifications as read:', error);
+      console.error('Error marking all notifications as read: Network error');
     }
   };
 
@@ -175,7 +176,7 @@ const NotificationCenter: React.FC = () => {
         }
       }
     } catch (error) {
-      console.error('Error deleting notification:', error);
+      console.error('Error deleting notification: Network error');
     }
   };
 
@@ -206,6 +207,16 @@ const NotificationCenter: React.FC = () => {
     if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`;
     return date.toLocaleDateString();
   };
+
+  const handleTabChange = (tab: 'all' | 'unread') => {
+    setActiveTab(tab);
+  };
+
+  const handleClickOutside = useCallback((event: MouseEvent) => {
+    if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      setIsOpen(false);
+    }
+  }, []);
 
   const filteredNotifications = notifications.filter(notification => {
     if (activeTab === 'unread') return !notification.isRead;
@@ -350,13 +361,17 @@ const NotificationCenter: React.FC = () => {
                                   Mark as read
                                 </button>
                               )}
-                              {notification.actionUrl && (
+                              {notification.link && (
                                 <button
-                                  onClick={() => window.location.href = notification.actionUrl!}
+                                  onClick={() => {
+                                    if (notification.link) {
+                                      window.location.href = notification.link;
+                                    }
+                                  }}
                                   className="text-xs text-blue-600 hover:text-blue-800 flex items-center"
                                 >
                                   <ExternalLink className="w-3 h-3 mr-1" />
-                                  View
+                                  View Details
                                 </button>
                               )}
                               <button

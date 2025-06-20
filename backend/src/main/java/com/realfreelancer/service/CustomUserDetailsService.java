@@ -10,6 +10,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
+import java.util.Optional;
 
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
@@ -22,20 +23,17 @@ public class CustomUserDetailsService implements UserDetailsService {
         User user;
         
         // Always treat the username as email for authentication
-        user = userRepository.findByEmail(username)
-            .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + username));
+        Optional<User> userOptional = userRepository.findByEmail(username);
 
-        System.out.println("Found user by email: " + user.getUsername()); // Debug log
-        System.out.println("Password hash: " + user.getPassword()); // Debug log
-
-        return new org.springframework.security.core.userdetails.User(
-                user.getEmail(), // Use email as the principal
-                user.getPassword(),
-                user.getIsActive(),
-                true, // accountNonExpired
-                true, // credentialsNonExpired
-                true, // accountNonLocked
-                Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"))
-        );
+        if (userOptional.isPresent()) {
+            user = userOptional.get();
+            return org.springframework.security.core.userdetails.User
+                .withUsername(user.getUsername())
+                .password(user.getPassword())
+                .authorities("USER")
+                .build();
+        } else {
+            throw new UsernameNotFoundException("User not found with email: " + username);
+        }
     }
 } 

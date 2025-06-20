@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { 
   BarChart3, 
@@ -34,9 +34,49 @@ interface QuickStats {
   completedProjects: number;
 }
 
+interface RecentProject {
+  id: number;
+  title: string;
+  status: string;
+  createdAt: string;
+}
+
+interface RecentApplication {
+  id: number;
+  projectTitle: string;
+  status: string;
+  createdAt: string;
+}
+
 interface RecentActivity {
-  recentProjects: any[];
-  recentApplications: any[];
+  recentProjects: RecentProject[];
+  recentApplications: RecentApplication[];
+}
+
+interface StatCardProps {
+  title: string;
+  value: number | string;
+  icon: React.ElementType;
+  color: string;
+  trend?: {
+    value: number;
+    isPositive: boolean;
+  };
+}
+
+interface QuickActionCardProps {
+  title: string;
+  description: string;
+  icon: React.ElementType;
+  action: () => void;
+  color: string;
+}
+
+interface ActivityItemProps {
+  type: 'project' | 'application';
+  title: string;
+  time: string;
+  status: string;
 }
 
 const UserDashboard: React.FC = () => {
@@ -68,13 +108,25 @@ const UserDashboard: React.FC = () => {
         });
       }
     } catch (error) {
-      console.error('Error fetching dashboard data:', error);
+      console.error('Error fetching dashboard data: Network error');
     } finally {
       setLoading(false);
     }
   };
 
-  const StatCard = ({ title, value, icon: Icon, color, trend }: any) => (
+  const handleNavigateToProjects = useCallback(() => {
+    window.location.href = '/projects';
+  }, []);
+
+  const handleNavigateToNewProject = useCallback(() => {
+    window.location.href = '/projects/new';
+  }, []);
+
+  const handleNavigateToChat = useCallback(() => {
+    window.location.href = '/chat';
+  }, []);
+
+  const StatCard = ({ title, value, icon: Icon, color, trend }: StatCardProps) => (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -86,9 +138,9 @@ const UserDashboard: React.FC = () => {
           <p className="text-2xl font-bold text-gray-900 mt-1">{value}</p>
           {trend && (
             <div className="flex items-center mt-2">
-              <TrendingUp className={`w-4 h-4 ${trend > 0 ? 'text-green-500' : 'text-red-500'}`} />
-              <span className={`text-sm ml-1 ${trend > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                {trend > 0 ? '+' : ''}{trend}%
+              <TrendingUp className={`w-4 h-4 ${trend.isPositive ? 'text-green-500' : 'text-red-500'}`} />
+              <span className={`text-sm ml-1 ${trend.isPositive ? 'text-green-600' : 'text-red-600'}`}>
+                {trend.isPositive ? '+' : ''}{trend.value}%
               </span>
             </div>
           )}
@@ -100,7 +152,7 @@ const UserDashboard: React.FC = () => {
     </motion.div>
   );
 
-  const QuickActionCard = ({ title, description, icon: Icon, action, color }: any) => (
+  const QuickActionCard = ({ title, description, icon: Icon, action, color }: QuickActionCardProps) => (
     <motion.div
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
@@ -115,7 +167,7 @@ const UserDashboard: React.FC = () => {
     </motion.div>
   );
 
-  const ActivityItem = ({ type, title, time, status }: any) => (
+  const ActivityItem = ({ type, title, time, status }: ActivityItemProps) => (
     <div className="flex items-center space-x-3 p-3 hover:bg-gray-50 rounded-lg transition-colors">
       <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
         type === 'project' ? 'bg-blue-100' : 'bg-green-100'
@@ -158,7 +210,7 @@ const UserDashboard: React.FC = () => {
           className="mb-8"
         >
           <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-600 mt-2">Welcome back! Here's what's happening with your projects.</p>
+          <p className="text-gray-600 mt-2">Welcome back! Here&apos;s what&apos;s happening with your projects.</p>
         </motion.div>
 
         {/* Stats Grid */}
@@ -168,28 +220,28 @@ const UserDashboard: React.FC = () => {
             value={stats?.totalProjects || 0}
             icon={Briefcase}
             color="bg-blue-500"
-            trend={12}
+            trend={{ value: 12, isPositive: true }}
           />
           <StatCard
             title="Applications"
             value={stats?.totalApplications || 0}
             icon={FileText}
             color="bg-green-500"
-            trend={8}
+            trend={{ value: 8, isPositive: true }}
           />
           <StatCard
             title="Average Rating"
             value={stats?.averageRating?.toFixed(1) || '0.0'}
             icon={Star}
             color="bg-yellow-500"
-            trend={5}
+            trend={{ value: 5, isPositive: true }}
           />
           <StatCard
             title="Completion Rate"
             value={`${stats?.completionRate || 0}%`}
             icon={CheckCircle}
             color="bg-purple-500"
-            trend={-2}
+            trend={{ value: -2, isPositive: false }}
           />
         </div>
 
@@ -231,25 +283,25 @@ const UserDashboard: React.FC = () => {
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
             <div className="space-y-4">
               <QuickActionCard
-                title="Post New Project"
+                title="Post Project"
                 description="Create a new project and find the perfect freelancer"
                 icon={Briefcase}
                 color="bg-blue-500"
-                action={() => window.location.href = '/projects/new'}
+                action={handleNavigateToNewProject}
               />
               <QuickActionCard
                 title="Browse Projects"
                 description="Find projects that match your skills"
                 icon={Search}
                 color="bg-green-500"
-                action={() => window.location.href = '/projects'}
+                action={handleNavigateToProjects}
               />
               <QuickActionCard
                 title="View Messages"
                 description="Check your conversations and messages"
                 icon={MessageSquare}
                 color="bg-purple-500"
-                action={() => window.location.href = '/chat'}
+                action={handleNavigateToChat}
               />
             </div>
           </div>
@@ -262,7 +314,7 @@ const UserDashboard: React.FC = () => {
                 <h3 className="text-lg font-medium text-gray-900 mb-4">Recent Projects</h3>
                 <div className="space-y-2">
                   {recentActivity?.recentProjects && recentActivity.recentProjects.length > 0 ? (
-                    recentActivity.recentProjects.map((project: any, index: number) => (
+                    recentActivity.recentProjects.map((project: RecentProject, index: number) => (
                       <ActivityItem
                         key={index}
                         type="project"
@@ -281,11 +333,11 @@ const UserDashboard: React.FC = () => {
                 <h3 className="text-lg font-medium text-gray-900 mb-4">Recent Applications</h3>
                 <div className="space-y-2">
                   {recentActivity?.recentApplications && recentActivity.recentApplications.length > 0 ? (
-                    recentActivity.recentApplications.map((application: any, index: number) => (
+                    recentActivity.recentApplications.map((application: RecentApplication, index: number) => (
                       <ActivityItem
                         key={index}
                         type="application"
-                        title={`Application for ${application.project?.title || 'Project'}`}
+                        title={`Application for ${application.projectTitle || 'Project'}`}
                         time={new Date(application.createdAt).toLocaleDateString()}
                         status={application.status?.toLowerCase()}
                       />

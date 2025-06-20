@@ -76,7 +76,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setToken(null);
       }
     } catch (error) {
-      console.error('Error fetching user profile:', error);
+      console.error('Error in user profile fetch');
       localStorage.removeItem('token');
       setToken(null);
     } finally {
@@ -106,11 +106,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return true;
       } else {
         const errorData = await response.json();
-        console.error('Login failed:', errorData);
+        // Safely log error without exposing sensitive data
+        console.error('Login failed: Invalid credentials');
         return false;
       }
     } catch (error) {
-      console.error('Login error:', error);
+      // Safely log error without exposing sensitive data
+      console.error('Network error during login');
       return false;
     }
   };
@@ -137,11 +139,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return true;
       } else {
         const errorData = await response.json();
-        console.error('Registration failed:', errorData.message);
+        // Safely log error without exposing sensitive data
+        console.error('Registration failed: Invalid data');
         return false;
       }
     } catch (error) {
-      console.error('Registration error:', error);
+      // Safely log error without exposing sensitive data
+      console.error('Network error during registration');
       return false;
     }
   };

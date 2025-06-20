@@ -41,6 +41,16 @@ export default function PostProjectPage() {
     }))
   }
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleBudgetChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseInt(e.target.value) || 0;
+    setFormData(prev => ({ ...prev, budget: value }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
@@ -148,8 +158,9 @@ export default function PostProjectPage() {
                   </label>
                   <input
                     type="text"
+                    name="title"
                     value={formData.title}
-                    onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                    onChange={handleInputChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     required
                   />
@@ -160,8 +171,9 @@ export default function PostProjectPage() {
                     Project Type *
                   </label>
                   <select
+                    name="type"
                     value={formData.type}
-                    onChange={(e) => setFormData(prev => ({ ...prev, type: e.target.value as 'FREE' | 'PAID' }))}
+                    onChange={handleInputChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   >
                     <option value="FREE">Free Project</option>
@@ -175,8 +187,9 @@ export default function PostProjectPage() {
                   Project Description * (minimum 20 characters)
                 </label>
                 <textarea
+                  name="description"
                   value={formData.description}
-                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                  onChange={handleInputChange}
                   rows={6}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   placeholder="Describe your project in detail (minimum 20 characters)..."
@@ -200,8 +213,9 @@ export default function PostProjectPage() {
                   </label>
                   <input
                     type="number"
+                    name="budget"
                     value={formData.budget}
-                    onChange={(e) => setFormData(prev => ({ ...prev, budget: parseInt(e.target.value) || 0 }))}
+                    onChange={handleBudgetChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     min="0"
                   />

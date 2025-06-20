@@ -7,9 +7,36 @@ import Header from '../../components/Header'
 import ProjectCard from '../../components/ProjectCard'
 import FilterBar from '../../components/FilterBar'
 
+interface Project {
+  id: number;
+  title: string;
+  description: string;
+  requiredSkills: string[];
+  budget: number;
+  deadline: string;
+  status: 'OPEN' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
+  type: 'FREE' | 'PAID';
+  client: {
+    id: number;
+    username: string;
+    email: string;
+  };
+  freelancer?: {
+    id: number;
+    username: string;
+    email: string;
+  };
+  attachmentUrl?: string;
+  isFeatured: boolean;
+  viewCount: number;
+  applicationCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export default function ProjectsPage() {
-  const [projects, setProjects] = useState<any[]>([])
-  const [filteredProjects, setFilteredProjects] = useState<any[]>([])
+  const [projects, setProjects] = useState<Project[]>([])
+  const [filteredProjects, setFilteredProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedSkills, setSelectedSkills] = useState<string[]>([])
@@ -29,10 +56,10 @@ export default function ProjectsPage() {
         const data = await response.json()
         setProjects(data.content || data)
       } else {
-        console.error('Failed to fetch projects:', response.status)
+        console.error('Failed to fetch projects: Server error')
       }
     } catch (error) {
-      console.error('Error fetching projects:', error)
+      console.error('Error fetching projects: Network error')
     } finally {
       setLoading(false)
     }
