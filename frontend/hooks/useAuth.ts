@@ -83,7 +83,8 @@ export function useAuth() {
         return { success: true }
       } else {
         const errorData = await response.json()
-        return { success: false, error: errorData || 'Login failed' }
+        const errorMessage = errorData.message || errorData.error || 'Login failed'
+        return { success: false, error: errorMessage }
       }
     } catch (error) {
       console.error('Login error:', error)
