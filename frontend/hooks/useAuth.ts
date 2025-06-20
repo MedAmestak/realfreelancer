@@ -142,6 +142,10 @@ export function useAuth() {
     return token ? { Authorization: `Bearer ${token}` } : {}
   }
 
+  const getAuthToken = (): string | null => {
+    return localStorage.getItem('token')
+  }
+
   return {
     user: authState.user,
     token: authState.token,
@@ -150,5 +154,6 @@ export function useAuth() {
     register,
     logout,
     getAuthHeaders,
+    getAuthToken,
   }
 } 

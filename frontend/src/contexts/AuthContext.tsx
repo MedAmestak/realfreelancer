@@ -19,6 +19,7 @@ interface AuthContextType {
   logout: () => void;
   register: (userData: RegisterData) => Promise<boolean>;
   loading: boolean;
+  getAuthToken: () => string | null;
 }
 
 interface RegisterData {
@@ -156,6 +157,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setUser(null);
   };
 
+  const getAuthToken = (): string | null => {
+    return localStorage.getItem('token');
+  };
+
   const value: AuthContextType = {
     user,
     token,
@@ -163,6 +168,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     logout,
     register,
     loading,
+    getAuthToken,
   };
 
   return (

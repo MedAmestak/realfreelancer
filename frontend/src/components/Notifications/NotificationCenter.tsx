@@ -15,6 +15,7 @@ import {
   AlertCircle,
   ExternalLink
 } from 'lucide-react';
+import { useAuth } from '../../../hooks/useAuth';
 
 interface Notification {
   id: number;
@@ -35,6 +36,7 @@ interface Notification {
 interface NotificationCenterProps {}
 
 const NotificationCenter: React.FC<NotificationCenterProps> = () => {
+  const { getAuthToken } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
@@ -88,9 +90,15 @@ const NotificationCenter: React.FC<NotificationCenterProps> = () => {
 
   const fetchNotifications = async () => {
     try {
+      const token = getAuthToken();
+      if (!token) {
+        console.error('No authentication token found');
+        return;
+      }
+
       const response = await fetch('/api/notifications', {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${token}`
         }
       });
       
@@ -105,9 +113,15 @@ const NotificationCenter: React.FC<NotificationCenterProps> = () => {
 
   const fetchUnreadCount = async () => {
     try {
+      const token = getAuthToken();
+      if (!token) {
+        console.error('No authentication token found');
+        return;
+      }
+
       const response = await fetch('/api/notifications/unread-count', {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${token}`
         }
       });
       
@@ -122,10 +136,16 @@ const NotificationCenter: React.FC<NotificationCenterProps> = () => {
 
   const markAsRead = async (notificationId: number) => {
     try {
+      const token = getAuthToken();
+      if (!token) {
+        console.error('No authentication token found');
+        return;
+      }
+
       const response = await fetch(`/api/notifications/${notificationId}/read`, {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${token}`
         }
       });
       
@@ -142,10 +162,16 @@ const NotificationCenter: React.FC<NotificationCenterProps> = () => {
 
   const markAllAsRead = async () => {
     try {
+      const token = getAuthToken();
+      if (!token) {
+        console.error('No authentication token found');
+        return;
+      }
+
       const response = await fetch('/api/notifications/mark-all-read', {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${token}`
         }
       });
       
@@ -160,10 +186,16 @@ const NotificationCenter: React.FC<NotificationCenterProps> = () => {
 
   const deleteNotification = async (notificationId: number) => {
     try {
+      const token = getAuthToken();
+      if (!token) {
+        console.error('No authentication token found');
+        return;
+      }
+
       const response = await fetch(`/api/notifications/${notificationId}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${token}`
         }
       });
       
@@ -363,8 +395,9 @@ const NotificationCenter: React.FC<NotificationCenterProps> = () => {
                               {notification.link && (
                                 <button
                                   onClick={() => {
-                                    if (notification.link) {
-                                      window.location.href = notification.link;
+                                    const link = notification.link;
+                                    if (link) {
+                                      window.location.href = link;
                                     }
                                   }}
                                   className="text-xs text-blue-600 hover:text-blue-800 flex items-center"

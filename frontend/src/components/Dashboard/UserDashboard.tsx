@@ -17,6 +17,7 @@ import {
   Award,
   Search
 } from 'lucide-react';
+import { useAuth } from '../../../hooks/useAuth';
 
 interface DashboardStats {
   totalProjects: number;
@@ -80,6 +81,7 @@ interface ActivityItemProps {
 }
 
 const UserDashboard: React.FC = () => {
+  const { getAuthToken } = useAuth();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [quickStats, setQuickStats] = useState<QuickStats | null>(null);
   const [recentActivity, setRecentActivity] = useState<RecentActivity | null>(null);
@@ -91,10 +93,16 @@ const UserDashboard: React.FC = () => {
 
   const fetchDashboardData = async () => {
     try {
+      const token = getAuthToken();
+      if (!token) {
+        console.error('No authentication token found');
+        return;
+      }
+
       // Fetch user dashboard data
       const response = await fetch('/api/dashboard/user', {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${token}`
         }
       });
       
