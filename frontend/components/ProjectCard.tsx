@@ -62,9 +62,9 @@ export default function ProjectCard({ project }: ProjectCardProps) {
 
           {/* Skills */}
           <div className="flex flex-wrap gap-2">
-            {project.requiredSkills.slice(0, 3).map((skill, index) => (
+            {project.requiredSkills.slice(0, 3).map((skill) => (
               <span
-                key={index}
+                key={skill}
                 className="badge badge-secondary text-xs"
               >
                 {skill}

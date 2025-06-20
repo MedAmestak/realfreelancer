@@ -266,7 +266,7 @@ const AdvancedSearch: React.FC = () => {
               >
                 {suggestions.map((suggestion, index) => (
                   <button
-                    key={index}
+                    key={`${suggestion.text}-${index}`}
                     onClick={() => handleSuggestionClick(suggestion)}
                     className="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center"
                   >
@@ -473,12 +473,12 @@ const AdvancedSearch: React.FC = () => {
                 </div>
               ) : searchResults.length > 0 ? (
                 <div className="space-y-4">
-                  {searchResults.map((result, index) => (
+                  {searchResults.map((result) => (
                     <motion.div
                       key={result.id}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.1 }}
+                      transition={{ delay: result.id * 0.1 }}
                       className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
                     >
                       <h4 className="text-lg font-semibold text-gray-900 mb-2">{result.title}</h4>

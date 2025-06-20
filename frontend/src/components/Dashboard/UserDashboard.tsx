@@ -314,9 +314,9 @@ const UserDashboard: React.FC = () => {
                 <h3 className="text-lg font-medium text-gray-900 mb-4">Recent Projects</h3>
                 <div className="space-y-2">
                   {recentActivity?.recentProjects && recentActivity.recentProjects.length > 0 ? (
-                    recentActivity.recentProjects.map((project: RecentProject, index: number) => (
+                    recentActivity.recentProjects.map((project: RecentProject) => (
                       <ActivityItem
-                        key={index}
+                        key={`project-${project.id}`}
                         type="project"
                         title={project.title}
                         time={new Date(project.createdAt).toLocaleDateString()}
@@ -333,9 +333,9 @@ const UserDashboard: React.FC = () => {
                 <h3 className="text-lg font-medium text-gray-900 mb-4">Recent Applications</h3>
                 <div className="space-y-2">
                   {recentActivity?.recentApplications && recentActivity.recentApplications.length > 0 ? (
-                    recentActivity.recentApplications.map((application: RecentApplication, index: number) => (
+                    recentActivity.recentApplications.map((application: RecentApplication) => (
                       <ActivityItem
-                        key={index}
+                        key={`application-${application.id}`}
                         type="application"
                         title={`Application for ${application.projectTitle || 'Project'}`}
                         time={new Date(application.createdAt).toLocaleDateString()}
