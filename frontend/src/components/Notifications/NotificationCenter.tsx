@@ -45,18 +45,6 @@ const NotificationCenter: React.FC<NotificationCenterProps> = () => {
   const wsRef = useRef<WebSocket | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    fetchNotifications();
-    fetchUnreadCount();
-    setupWebSocket();
-    
-    return () => {
-      if (wsRef.current) {
-        wsRef.current.close();
-      }
-    };
-  }, []);
-
   const setupWebSocket = () => {
     try {
       const ws = new WebSocket('ws://localhost:8080/ws');
@@ -133,6 +121,18 @@ const NotificationCenter: React.FC<NotificationCenterProps> = () => {
       console.error('Error fetching unread count: Network error');
     }
   };
+
+  useEffect(() => {
+    fetchNotifications();
+    fetchUnreadCount();
+    setupWebSocket();
+    
+    return () => {
+      if (wsRef.current) {
+        wsRef.current.close();
+      }
+    };
+  }, []);
 
   const markAsRead = async (notificationId: number) => {
     try {

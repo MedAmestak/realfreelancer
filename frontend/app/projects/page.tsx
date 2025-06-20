@@ -41,14 +41,6 @@ export default function ProjectsPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedSkills, setSelectedSkills] = useState<string[]>([])
 
-  useEffect(() => {
-    fetchProjects()
-  }, [])
-
-  useEffect(() => {
-    filterProjects()
-  }, [projects, searchTerm, selectedSkills])
-
   const fetchProjects = async () => {
     try {
       const response = await fetch('http://localhost:8080/api/projects')
@@ -87,6 +79,14 @@ export default function ProjectsPage() {
 
     setFilteredProjects(filtered)
   }
+
+  useEffect(() => {
+    fetchProjects()
+  }, [])
+
+  useEffect(() => {
+    filterProjects()
+  }, [projects, searchTerm, selectedSkills])
 
   return (
     <div className="min-h-screen bg-gray-50">

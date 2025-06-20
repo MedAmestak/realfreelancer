@@ -45,14 +45,6 @@ export default function HomePage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedSkills, setSelectedSkills] = useState<string[]>([])
 
-  useEffect(() => {
-    fetchProjects()
-  }, [])
-
-  useEffect(() => {
-    filterProjects()
-  }, [projects, searchTerm, selectedSkills])
-
   const fetchProjects = async () => {
     try {
       const response = await fetch('http://localhost:8080/api/projects')
@@ -91,6 +83,14 @@ export default function HomePage() {
 
     setFilteredProjects(filtered)
   }
+
+  useEffect(() => {
+    fetchProjects()
+  }, [])
+
+  useEffect(() => {
+    filterProjects()
+  }, [projects, searchTerm, selectedSkills])
 
   const stats = [
     { icon: Briefcase, label: 'Active Projects', value: projects.filter(p => p.status === 'OPEN').length },

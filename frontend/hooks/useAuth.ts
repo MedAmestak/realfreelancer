@@ -21,6 +21,16 @@ export function useAuth() {
     isAuthenticated: false,
   })
 
+  const logout = () => {
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
+    setAuthState({
+      user: null,
+      token: null,
+      isAuthenticated: false,
+    })
+  }
+
   useEffect(() => {
     // Check for stored token on mount
     const token = localStorage.getItem('token')
@@ -125,16 +135,6 @@ export function useAuth() {
     } catch (error) {
       return { success: false, error: 'Network error' }
     }
-  }
-
-  const logout = () => {
-    localStorage.removeItem('token')
-    localStorage.removeItem('user')
-    setAuthState({
-      user: null,
-      token: null,
-      isAuthenticated: false,
-    })
   }
 
   const getAuthHeaders = () => {

@@ -87,10 +87,6 @@ const UserDashboard: React.FC = () => {
   const [recentActivity, setRecentActivity] = useState<RecentActivity | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchDashboardData();
-  }, []);
-
   const fetchDashboardData = async () => {
     try {
       const token = getAuthToken();
@@ -121,6 +117,10 @@ const UserDashboard: React.FC = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
 
   const handleNavigateToProjects = useCallback(() => {
     window.location.href = '/projects';
