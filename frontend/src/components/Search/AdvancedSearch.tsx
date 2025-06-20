@@ -358,8 +358,9 @@ const AdvancedSearch: React.FC = () => {
                 <h4 className="text-sm font-medium text-gray-700 mb-3">Budget Range</h4>
                 <div className="space-y-3">
                   <div>
-                    <label className="text-xs text-gray-500">Min Budget</label>
+                    <label htmlFor="minBudget" className="text-xs text-gray-500">Min Budget</label>
                     <input
+                      id="minBudget"
                       type="number"
                       name="minBudget"
                       value={filters.minBudget}
@@ -368,8 +369,9 @@ const AdvancedSearch: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="text-xs text-gray-500">Max Budget</label>
+                    <label htmlFor="maxBudget" className="text-xs text-gray-500">Max Budget</label>
                     <input
+                      id="maxBudget"
                       type="number"
                       name="maxBudget"
                       value={filters.maxBudget}

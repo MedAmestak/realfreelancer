@@ -99,15 +99,17 @@ export default function FilterBar({ selectedSkills, onSkillsChange }: FilterBarP
       <div className="mt-6 pt-4 border-t border-gray-200">
         <h4 className="text-sm font-medium text-gray-700 mb-3">Project Type:</h4>
         <div className="space-y-2">
-          <label className="flex items-center space-x-2 cursor-pointer">
+          <label htmlFor="free-projects" className="flex items-center space-x-2 cursor-pointer">
             <input
+              id="free-projects"
               type="checkbox"
               className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
             />
             <span className="text-sm text-gray-700">Free Projects</span>
           </label>
-          <label className="flex items-center space-x-2 cursor-pointer">
+          <label htmlFor="paid-projects" className="flex items-center space-x-2 cursor-pointer">
             <input
+              id="paid-projects"
               type="checkbox"
               className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
             />
@@ -120,22 +122,25 @@ export default function FilterBar({ selectedSkills, onSkillsChange }: FilterBarP
       <div className="mt-6 pt-4 border-t border-gray-200">
         <h4 className="text-sm font-medium text-gray-700 mb-3">Budget Range:</h4>
         <div className="space-y-2">
-          <label className="flex items-center space-x-2 cursor-pointer">
+          <label htmlFor="budget-0-100" className="flex items-center space-x-2 cursor-pointer">
             <input
+              id="budget-0-100"
               type="checkbox"
               className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
             />
             <span className="text-sm text-gray-700">$0 - $100</span>
           </label>
-          <label className="flex items-center space-x-2 cursor-pointer">
+          <label htmlFor="budget-100-500" className="flex items-center space-x-2 cursor-pointer">
             <input
+              id="budget-100-500"
               type="checkbox"
               className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
             />
             <span className="text-sm text-gray-700">$100 - $500</span>
           </label>
-          <label className="flex items-center space-x-2 cursor-pointer">
+          <label htmlFor="budget-500-plus" className="flex items-center space-x-2 cursor-pointer">
             <input
+              id="budget-500-plus"
               type="checkbox"
               className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
             />
