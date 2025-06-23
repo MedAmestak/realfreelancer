@@ -47,8 +47,13 @@ jobs:
     
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
-    
-    - name: Build and push Docker images
+
+    - name: Check Docker and Compose version
       run: |
-        docker-compose -f docker-compose.prod.yml build
+        docker --version
+        docker compose version
+
+    - name: Build Docker images
+      run: |
+        docker compose -f docker-compose.prod.yml build
         echo "Docker images built successfully" 
