@@ -32,7 +32,7 @@ spring:
 
 server:
   port: ${SERVER_PORT:8080}
-  address: ${SERVER_ADDRESS:127.0.0.1}
+  address: ${SERVER_ADDRESS:0.0.0.0}
 
 # JWT Configuration
 jwt:
