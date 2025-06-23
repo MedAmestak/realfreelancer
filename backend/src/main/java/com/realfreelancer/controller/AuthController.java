@@ -17,6 +17,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import com.realfreelancer.dto.AuthUserDTO;
 
 import java.time.LocalDateTime;
 import java.util.Date;
@@ -59,7 +60,7 @@ public class AuthController {
             User savedUser = userService.createUser(user);
 
             // Generate JWT token
-            String token = jwtTokenProvider.generateToken(savedUser.getUsername());
+            String token = jwtTokenProvider.generateToken(savedUser.getEmail());
             Date expiration = jwtTokenProvider.getExpirationDateFromToken(token);
 
             AuthResponse authResponse = new AuthResponse(token, savedUser.getId(), 
@@ -120,15 +121,12 @@ public class AuthController {
     public ResponseEntity<?> getCurrentUser() {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            String username = authentication.getName();
-            
-            User user = userService.findByUsername(username)
+            String email = authentication.getName();
+            User user = userService.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-
-            return ResponseEntity.ok(user);
-
+            return ResponseEntity.ok(new AuthUserDTO(user));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Failed to get user profile: Authentication error");
+            return ResponseEntity.badRequest().body("Error fetching user profile: " + e.getMessage());
         }
     }
 

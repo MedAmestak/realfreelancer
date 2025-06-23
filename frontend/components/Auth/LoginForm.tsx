@@ -22,12 +22,17 @@ const LoginForm: React.FC = () => {
     e.preventDefault();
     setError('');
     setSubmitting(true);
-    const result = await login(formData.email, formData.password);
-    setSubmitting(false);
-    if (result.success) {
-      router.push('/dashboard');
-    } else {
-      setError(result.error || 'Invalid email or password');
+    try {
+      const result = await login(formData.email, formData.password);
+      setSubmitting(false);
+      if (result.success) {
+        router.push('/dashboard');
+      } else {
+        setError(result.error || 'Invalid email or password');
+      }
+    } catch (err) {
+      setSubmitting(false);
+      setError('Network error. Please try again.');
     }
   };
 

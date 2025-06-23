@@ -29,12 +29,17 @@ const SignupForm: React.FC = () => {
     e.preventDefault();
     setError('');
     setSubmitting(true);
-    const result = await register(formData);
-    setSubmitting(false);
-    if (result.success) {
-      router.push('/dashboard');
-    } else {
-      setError(result.error || 'Registration failed. Please try again.');
+    try {
+      const response = await register(formData);
+      setSubmitting(false);
+      if (response.success) {
+        router.push('/login');
+      } else {
+        setError(response.error || 'Registration failed. Please try again.');
+      }
+    } catch (err) {
+      setSubmitting(false);
+      setError('Network error. Please try again.');
     }
   };
 
