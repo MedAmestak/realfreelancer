@@ -15,7 +15,7 @@ interface User {
 interface AuthContextType {
   user: User | null;
   token: string | null;
-  login: (username: string, password: string) => Promise<boolean>;
+  login: (username: string, password: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   register: (userData: RegisterData) => Promise<boolean>;
   loading: boolean;
@@ -30,7 +30,7 @@ interface RegisterData {
   skills?: string[];
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
@@ -85,7 +85,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }, []);
 
-  const login = async (username: string, password: string): Promise<boolean> => {
+  const login = async (username: string, password: string): Promise<{ success: boolean; error?: string }> => {
     try {
       const response = await fetch('http://localhost:8080/api/auth/login', {
         method: 'POST',
@@ -98,23 +98,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (response.ok) {
         const data = await response.json();
         const authToken = data.token;
-        
         localStorage.setItem('token', authToken);
         setToken(authToken);
-        
-        // Fetch user profile
         await fetchUserProfile(authToken);
-        return true;
+        return { success: true };
       } else {
-        const errorData = await response.json();
-        // Safely log error without exposing sensitive data
-        console.error('Login failed: Invalid credentials');
-        return false;
+        let errorMessage = 'Login failed';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorData.error || errorMessage;
+        } catch (err) {
+          try {
+            errorMessage = await response.text();
+          } catch {}
+        }
+        return { success: false, error: errorMessage };
       }
     } catch (error) {
-      // Safely log error without exposing sensitive data
-      console.error('Network error during login');
-      return false;
+      return { success: false, error: 'Network error' };
     }
   };
 

@@ -4,6 +4,8 @@ import com.realfreelancer.model.Project;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -12,23 +14,24 @@ import java.util.HashSet;
 
 public class ProjectRequest {
     
-    @NotBlank(message = "Title is required")
+    @NotBlank(message = "Title is required") // min 5 chars
     @Size(min = 5, max = 200, message = "Title must be between 5 and 200 characters")
     private String title;
     
-    @NotBlank(message = "Description is required")
+    @NotBlank(message = "Description is required") // min 20 chars
     @Size(min = 20, max = 2000, message = "Description must be between 20 and 2000 characters")
     private String description;
     
-    private Set<String> requiredSkills;
+    private Set<String> requiredSkills = new HashSet<>();
     
     @NotNull(message = "Budget is required")
     private BigDecimal budget;
     
     @NotNull(message = "Deadline is required")
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss[.SSS][.SS][.S][XXX][X]", shape = JsonFormat.Shape.STRING)
     private LocalDateTime deadline;
     
-    private Project.ProjectType type = Project.ProjectType.FREE;
+    private String type = "FREE";
     
     private String attachmentUrl;
     
@@ -36,7 +39,7 @@ public class ProjectRequest {
     public ProjectRequest() {}
     
     public ProjectRequest(String title, String description, Set<String> requiredSkills, 
-                         BigDecimal budget, LocalDateTime deadline) {
+BigDecimal budget, LocalDateTime deadline) {
         this.title = title;
         this.description = description;
         this.requiredSkills = (requiredSkills != null) ? new HashSet<>(requiredSkills) : null;
@@ -66,30 +69,55 @@ public class ProjectRequest {
     }
     
     public void setRequiredSkills(Set<String> requiredSkills) {
-        this.requiredSkills = (requiredSkills != null) ? new HashSet<>(requiredSkills) : null;
+        this.requiredSkills = (requiredSkills != null) ? new HashSet<>(requiredSkills) : new HashSet<>();
     }
     
     public BigDecimal getBudget() {
         return budget;
     }
     
-    public void setBudget(BigDecimal budget) {
-        this.budget = budget;
+    @JsonProperty("budget")
+    public void setBudget(Object budget) {
+        if (budget instanceof Integer) {
+            this.budget = new BigDecimal((Integer) budget);
+        } else if (budget instanceof Double) {
+            this.budget = BigDecimal.valueOf((Double) budget);
+        } else if (budget instanceof String) {
+            this.budget = new BigDecimal((String) budget);
+        } else if (budget instanceof BigDecimal) {
+            this.budget = (BigDecimal) budget;
+        }
     }
     
     public LocalDateTime getDeadline() {
         return deadline;
     }
     
-    public void setDeadline(LocalDateTime deadline) {
-        this.deadline = deadline;
+    @JsonProperty("deadline")
+    public void setDeadline(Object deadline) {
+        if (deadline instanceof String) {
+            String str = (String) deadline;
+            try {
+                this.deadline = java.time.OffsetDateTime.parse(str).toLocalDateTime();
+            } catch (Exception e) {
+                try {
+                    this.deadline = java.time.LocalDateTime.parse(str);
+                } catch (Exception ex) {
+                    this.deadline = null;
+                }
+            }
+        } else if (deadline instanceof LocalDateTime) {
+            this.deadline = (LocalDateTime) deadline;
+        } else {
+            this.deadline = null;
+        }
     }
     
     public Project.ProjectType getType() {
-        return type;
+        return Project.ProjectType.valueOf(type);
     }
     
-    public void setType(Project.ProjectType type) {
+    public void setType(String type) {
         this.type = type;
     }
     

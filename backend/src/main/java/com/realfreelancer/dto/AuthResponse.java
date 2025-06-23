@@ -1,6 +1,7 @@
 package com.realfreelancer.dto;
 
 import java.time.LocalDateTime;
+import com.realfreelancer.model.User;
 
 public class AuthResponse {
     
@@ -87,4 +88,6 @@ public class AuthResponse {
     public void setExpiresAt(LocalDateTime expiresAt) {
         this.expiresAt = expiresAt;
     }
+
+
 } 

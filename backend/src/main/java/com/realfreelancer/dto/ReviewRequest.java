@@ -62,4 +62,4 @@ public class ReviewRequest {
     public void setReviewedUserId(Long reviewedUserId) {
         this.reviewedUserId = reviewedUserId;
     }
-} 
+}

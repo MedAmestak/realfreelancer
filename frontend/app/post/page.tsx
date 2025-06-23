@@ -9,7 +9,7 @@ import { useAuth } from '../../hooks/useAuth'
 
 export default function PostProjectPage() {
   const router = useRouter()
-  const { user, getAuthHeaders } = useAuth()
+  const { user, getAuthToken } = useAuth()
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -20,6 +20,7 @@ export default function PostProjectPage() {
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
 
   const commonSkills = [
     'JavaScript', 'TypeScript', 'React', 'Vue', 'Angular', 'Node.js',
@@ -51,14 +52,27 @@ export default function PostProjectPage() {
     setFormData(prev => ({ ...prev, budget: value }));
   };
 
+  const isFormValid =
+    formData.title.trim().length > 0 &&
+    formData.description.trim().length >= 20 &&
+    formData.deadline &&
+    !loading;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError('')
+    setFieldErrors({})
 
     // Validate description length
     if (formData.description.length < 20) {
       setError('Description must be at least 20 characters long')
+      setLoading(false)
+      return
+    }
+    // Validate deadline
+    if (!formData.deadline || isNaN(new Date(formData.deadline).getTime())) {
+      setError('Please select a valid deadline date')
       setLoading(false)
       return
     }
@@ -72,9 +86,9 @@ export default function PostProjectPage() {
         'Content-Type': 'application/json'
       }
       
-      const authHeaders = getAuthHeaders()
-      if (authHeaders.Authorization) {
-        headers.Authorization = authHeaders.Authorization
+      const token = getAuthToken && getAuthToken();
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
       }
 
       const projectData = {
@@ -91,13 +105,28 @@ export default function PostProjectPage() {
       if (response.ok) {
         router.push('/dashboard')
       } else {
-        const errorData = await response.json()
-        setError(errorData.message || 'Failed to create project')
+        let errMsg = 'Bad Request';
+        let fieldErrs: Record<string, string> = {};
+        try {
+          const data = await response.json();
+          if (typeof data === 'object' && data !== null) {
+            if (Array.isArray(data)) {
+              errMsg = data.join(', ');
+            } else {
+              fieldErrs = data;
+              errMsg = Object.values(data).join(' ');
+            }
+          } else if (typeof data === 'string') {
+            errMsg = data;
+          }
+        } catch {}
+        setError(errMsg);
+        setFieldErrors(fieldErrs);
       }
-    } catch (error) {
-      setError('Network error. Please try again.')
+    } catch (err) {
+      setError('Network error. Please try again.');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 
@@ -141,10 +170,15 @@ export default function PostProjectPage() {
 
           {/* Project Form */}
           <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
-            {error && (
-              <div className="bg-red-100 text-red-700 px-4 py-3 rounded-lg mb-6">
-                {error}
-              </div>
+            {/* Show general error */}
+            {error && <div className="bg-red-100 text-red-700 p-3 rounded mb-4">{error}</div>}
+            {/* Show field errors */}
+            {Object.keys(fieldErrors).length > 0 && (
+              <ul className="mb-4">
+                {Object.entries(fieldErrors).map(([field, msg]) => (
+                  <li key={field} className="text-red-600 text-sm">{field}: {msg}</li>
+                ))}
+              </ul>
             )}
 
             {/* Basic Information */}
@@ -268,7 +302,7 @@ export default function PostProjectPage() {
             <div className="flex justify-end">
               <button
                 type="submit"
-                disabled={loading}
+                disabled={!isFormValid}
                 className="btn-primary flex items-center space-x-2 disabled:opacity-50"
               >
                 {loading ? (

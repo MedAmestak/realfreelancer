@@ -86,33 +86,46 @@ const UserDashboard: React.FC = () => {
   const [quickStats, setQuickStats] = useState<QuickStats | null>(null);
   const [recentActivity, setRecentActivity] = useState<RecentActivity | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   const fetchDashboardData = async () => {
     try {
       const token = getAuthToken();
       if (!token) {
-        console.error('No authentication token found');
+        setError('You must be logged in to view your dashboard.');
+        setLoading(false);
         return;
       }
-
-      // Fetch user dashboard data
-      const response = await fetch('/api/dashboard/user', {
+      const response = await fetch('http://localhost:8080/api/dashboard/user', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
-      
       if (response.ok) {
         const data = await response.json();
-        setStats(data.analytics);
-        setQuickStats(data.quickStats);
+        setStats(data.analytics || null);
+        setQuickStats(data.quickStats || null);
         setRecentActivity({
           recentProjects: data.recentProjects || [],
           recentApplications: data.recentApplications || []
         });
+        setError('');
+      } else if (response.status === 401) {
+        setError('Session expired or unauthorized. Please log in again.');
+        setStats(null);
+        setQuickStats(null);
+        setRecentActivity(null);
+      } else {
+        setError('Failed to fetch dashboard data: Server error');
+        setStats(null);
+        setQuickStats(null);
+        setRecentActivity(null);
       }
     } catch (error) {
-      console.error('Error fetching dashboard data: Network error');
+      setError('Error fetching dashboard data: Network error');
+      setStats(null);
+      setQuickStats(null);
+      setRecentActivity(null);
     } finally {
       setLoading(false);
     }
@@ -204,6 +217,16 @@ const UserDashboard: React.FC = () => {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="bg-red-100 text-red-700 px-6 py-4 rounded-lg shadow">
+          {error}
+        </div>
       </div>
     );
   }

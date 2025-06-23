@@ -20,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -30,7 +31,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/projects")
 @CrossOrigin(origins = "http://localhost:3000")
-public class ProjectController {
+class ProjectController {
 
     @Autowired
     private ProjectService projectService;
@@ -104,11 +105,18 @@ public class ProjectController {
     @PostMapping
     public ResponseEntity<?> createProject(@Valid @RequestBody ProjectRequest projectRequest) {
         try {
+            // Get authenticated user
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String username = authentication.getName();
             User client = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
+            // Validate budget
+            if (projectRequest.getBudget() == null || projectRequest.getBudget().compareTo(BigDecimal.ZERO) < 0) {
+                return ResponseEntity.badRequest().body("Budget must be zero or positive");
+            }
+
+            // Create project
             Project project = new Project();
             project.setTitle(projectRequest.getTitle());
             project.setDescription(projectRequest.getDescription());
@@ -120,8 +128,10 @@ public class ProjectController {
 
             Project savedProject = projectRepository.save(project);
             return ResponseEntity.ok(savedProject);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("Invalid project type: " + e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Error creating project: Invalid project data");
+            return ResponseEntity.badRequest().body("Error creating project: " + e.getMessage());
         }
     }
 
@@ -354,5 +364,16 @@ public class ProjectController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Error fetching featured projects: Server error");
         }
+    }
+}
+
+@ControllerAdvice
+class GlobalExceptionHandler {
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<?> handleValidationExceptions(MethodArgumentNotValidException ex) {
+        java.util.Map<String, String> errors = new java.util.HashMap<>();
+        ex.getBindingResult().getFieldErrors().forEach(error ->
+            errors.put(error.getField(), error.getDefaultMessage()));
+        return ResponseEntity.badRequest().body(errors);
     }
 } 

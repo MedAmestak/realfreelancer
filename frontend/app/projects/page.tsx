@@ -6,6 +6,7 @@ import { Search, Filter, Briefcase } from 'lucide-react'
 import Header from '../../components/Header'
 import ProjectCard from '../../components/ProjectCard'
 import FilterBar from '../../components/FilterBar'
+import { useAuth } from '../../hooks/useAuth'
 
 interface Project {
   id: number;
@@ -40,18 +41,29 @@ export default function ProjectsPage() {
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedSkills, setSelectedSkills] = useState<string[]>([])
+  const [error, setError] = useState('')
+  const { user, getAuthToken } = useAuth();
 
   const fetchProjects = async () => {
     try {
-      const response = await fetch('http://localhost:8080/api/projects')
+      setError('');
+      const headers: Record<string, string> = {};
+      const token = getAuthToken && getAuthToken();
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+      const response = await fetch('http://localhost:8080/api/projects', { headers });
       if (response.ok) {
-        const data = await response.json()
+        const data = await response.json();
         setProjects(data.content || data)
+      } else if (response.status === 401) {
+        setError('You must be logged in to view projects.');
+        setProjects([]);
       } else {
-        console.error('Failed to fetch projects: Server error')
+        setError('Failed to fetch projects: Server error');
+        setProjects([]);
       }
     } catch (error) {
-      console.error('Error fetching projects: Network error')
+      setError('Error fetching projects: Network error');
+      setProjects([]);
     } finally {
       setLoading(false)
     }
@@ -128,6 +140,9 @@ export default function ProjectsPage() {
 
           {/* Projects Grid */}
           <div className="lg:w-3/4">
+            {error && (
+              <div className="bg-red-100 text-red-700 px-4 py-3 rounded-lg mb-6">{error}</div>
+            )}
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold text-gray-900">
                 Available Projects ({filteredProjects.length})
