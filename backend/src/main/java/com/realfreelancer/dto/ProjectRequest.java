@@ -103,13 +103,13 @@ BigDecimal budget, LocalDateTime deadline) {
                 try {
                     this.deadline = java.time.LocalDateTime.parse(str);
                 } catch (Exception ex) {
-                    this.deadline = null;
+                    throw new IllegalArgumentException("Invalid deadline format: " + str);
                 }
             }
         } else if (deadline instanceof LocalDateTime) {
             this.deadline = (LocalDateTime) deadline;
         } else {
-            this.deadline = null;
+            throw new IllegalArgumentException("Deadline must be a valid ISO 8601 string or LocalDateTime");
         }
     }
     
