@@ -61,11 +61,11 @@ public class AuthRequest {
     }
     
     public Set<String> getSkills() {
-        return skills;
+        return skills != null ? new HashSet<>(skills) : new HashSet<>();
     }
     
     public void setSkills(Set<String> skills) {
-        this.skills = (skills != null) ? new HashSet<>(skills) : null;
+        this.skills = skills != null ? new HashSet<>(skills) : new HashSet<>();
     }
     
     public String getBio() {
