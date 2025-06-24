@@ -36,8 +36,8 @@ server:
 
 # JWT Configuration
 jwt:
-  secret: ${JWT_SECRET:8fa8f90911ec227d330d36a30d4eabdcec6de84fc2447e23999914e2bae22608}
-  expiration: ${JWT_EXPIRATION:86400000}
+  secret: ${JWT_SECRET:insecure-default-secret-key-for-development-only-change-me}
+  expiration: 86400000 # 24 hours
 
 # CORS Configuration
 cors:
@@ -70,6 +70,8 @@ spring:
     driver-class-name: org.postgresql.Driver
   
   jpa:
+    hibernate:
+      ddl-auto: update
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect

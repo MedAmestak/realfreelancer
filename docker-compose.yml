@@ -4,35 +4,35 @@ services:
   # PostgreSQL Database
   postgres:
     image: postgres:15-alpine
-    container_name: realfreelancer-db
+    container_name: realfreelancer_db
     environment:
-      POSTGRES_DB: realfreelancer
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT}:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres-data:/var/lib/postgresql/data
     networks:
       - realfreelancer-network
+    restart: unless-stopped
 
   # Backend API
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: realfreelancer-backend
+    container_name: realfreelancer_backend
     environment:
-      SPRING_PROFILES_ACTIVE: prod
-      DB_URL: jdbc:postgresql://postgres:5432/realfreelancer
-      DB_USERNAME: postgres
-      DB_PASSWORD: password
-      DB_DRIVER: org.postgresql.Driver
-      JWT_SECRET: 8fa8f90911ec227d330d36a30d4eabdcec6de84fc2447e23999914e2bae22608
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
+      DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      DB_USERNAME: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
       SERVER_PORT: 8080
       SERVER_ADDRESS: 0.0.0.0
     ports:
-      - "8080:8080"
+      - "${BACKEND_PORT}:8080"
     depends_on:
       - postgres
     networks:
@@ -40,17 +40,18 @@ services:
     volumes:
       - ./backend:/app
       - /app/target
+    restart: unless-stopped
 
   # Frontend
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: realfreelancer-frontend
+    container_name: realfreelancer_frontend
     environment:
-      NEXT_PUBLIC_API_URL: http://localhost:8080
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
     ports:
-      - "3000:3000"
+      - "${FRONTEND_PORT}:3000"
     depends_on:
       - backend
     networks:
@@ -58,9 +59,10 @@ services:
     volumes:
       - ./frontend:/app
       - /app/node_modules
+    restart: unless-stopped
 
 volumes:
-  postgres_data:
+  postgres-data:
 
 networks:
   realfreelancer-network:
