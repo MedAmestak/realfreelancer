@@ -27,8 +27,12 @@ public class ProjectDTO {
     public void setBudget(BigDecimal budget) { this.budget = budget; }
     public LocalDateTime getDeadline() { return deadline; }
     public void setDeadline(LocalDateTime deadline) { this.deadline = deadline; }
-    public Set<String> getRequiredSkills() { return requiredSkills; }
-    public void setRequiredSkills(Set<String> requiredSkills) { this.requiredSkills = (requiredSkills != null) ? new HashSet<>(requiredSkills) : null; }
+    public Set<String> getRequiredSkills() { 
+        return requiredSkills != null ? new HashSet<>(requiredSkills) : new HashSet<>(); 
+    }
+    public void setRequiredSkills(Set<String> requiredSkills) { 
+        this.requiredSkills = requiredSkills != null ? new HashSet<>(requiredSkills) : new HashSet<>(); 
+    }
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
     public String getType() { return type; }

@@ -2,6 +2,7 @@ package com.realfreelancer.dto;
 
 import com.realfreelancer.model.User;
 import java.util.Set;
+import java.util.HashSet;
 
 public class AuthUserDTO {
     private Long id;
@@ -43,6 +44,10 @@ public class AuthUserDTO {
     public void setReputationPoints(Integer reputationPoints) { this.reputationPoints = reputationPoints; }
     public Boolean getIsVerified() { return isVerified; }
     public void setIsVerified(Boolean isVerified) { this.isVerified = isVerified; }
-    public Set<String> getSkills() { return skills; }
-    public void setSkills(Set<String> skills) { this.skills = skills; }
+    public Set<String> getSkills() { 
+        return skills != null ? new HashSet<>(skills) : new HashSet<>(); 
+    }
+    public void setSkills(Set<String> skills) { 
+        this.skills = skills != null ? new HashSet<>(skills) : new HashSet<>(); 
+    }
 } 
