@@ -54,16 +54,22 @@ export default function ProjectCard({ project }: ProjectCardProps) {
         </div>
 
         {/* Description */}
-        <p className="text-gray-600 text-sm line-clamp-3 flex-grow">
+        <p className="text-gray-500 text-sm overflow-hidden text-ellipsis" style={{
+          display: '-webkit-box',
+          WebkitBoxOrient: 'vertical',
+          WebkitLineClamp: 2
+        }}>
           {project.description}
         </p>
 
+
+
         {/* Skills */}
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 ">
           {project.requiredSkills.slice(0, 3).map((skill) => (
             <span
               key={skill}
-              className="badge badge-secondary text-xs"
+              className="badge badge-secondary text-xs badge-primary"
             >
               {skill}
             </span>
@@ -79,11 +85,11 @@ export default function ProjectCard({ project }: ProjectCardProps) {
         <div className="flex items-center justify-between text-sm text-gray-500">
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-1">
-              <DollarSign className="w-4 h-4" />
+              <DollarSign className="w-3 h-3" />
               <span>{formatBudget(project.budget)}</span>
             </div>
             <div className="flex items-center space-x-1">
-              <Calendar className="w-4 h-4" />
+              <Calendar className="w-3 h-3" />
               <span>{formatDate(project.deadline)}</span>
             </div>
           </div>

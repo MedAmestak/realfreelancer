@@ -142,7 +142,6 @@ export default function ProjectsPage() {
           {/* Projects Grid */}
           <div className="lg:w-3/4">
             {/* Debug: Pure HTML link test */}
-            <a href="https://www.google.com" style={{ display: 'block', background: 'green', color: 'white', padding: 20, margin: 20 }}>GOOGLE TEST LINK</a>
             {error && (
               <div className="bg-red-100 text-red-700 px-4 py-3 rounded-lg mb-6">{error}</div>
             )}
