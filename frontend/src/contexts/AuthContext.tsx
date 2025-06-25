@@ -31,6 +31,18 @@ interface RegisterData {
   skills?: string[];
 }
 
+// Add this interface for the JWT payload
+type DecodedToken = {
+  userId: number;
+  username: string;
+  email: string;
+  bio?: string;
+  skills: string[];
+  reputationPoints: number;
+  isVerified: boolean;
+  // Add other fields as needed
+};
+
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const useAuth = () => {
@@ -128,7 +140,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         localStorage.setItem('token', authToken);
         setToken(authToken);
         // Decode the JWT to get user info
-        const decoded: any = jwtDecode(authToken);
+        const decoded: DecodedToken = jwtDecode(authToken);
         setUser({
           id: decoded.userId,
           username: decoded.username,
