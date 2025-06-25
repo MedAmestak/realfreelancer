@@ -7,7 +7,6 @@ import jakarta.validation.constraints.Size;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -119,11 +118,11 @@ public class User {
     }
     
     public Set<String> getSkills() {
-        return skills;
+        return (skills == null) ? null : new HashSet<>(skills);
     }
     
     public void setSkills(Set<String> skills) {
-        this.skills = (skills != null) ? new HashSet<>(skills) : new HashSet<>();
+        this.skills = (skills == null) ? new HashSet<>() : new HashSet<>(skills);
     }
     
     public String getBio() {
@@ -193,15 +192,5 @@ public class User {
     
     public void addReputationPoints(int points) {
         this.reputationPoints += points;
-    }
-
-    @PrePersist
-    @PreUpdate
-    private void encodePassword() {
-        // Don't encode if already encoded
-        if (password != null && !password.startsWith("$2a$")) {
-            BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-            password = encoder.encode(password);
-        }
     }
 } 

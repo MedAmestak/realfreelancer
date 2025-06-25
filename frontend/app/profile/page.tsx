@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { User, Edit, Save, X, Star, Award, Briefcase, MessageSquare } from 'lucide-react'
 import Header from '../../components/Header'
-import { useAuth } from '../../hooks/useAuth'
+import { useAuth } from '../../src/contexts/AuthContext'
 
 interface Profile {
   id: number;
@@ -34,7 +34,7 @@ interface FormData {
 }
 
 export default function ProfilePage() {
-  const { user, getAuthHeaders } = useAuth()
+  const { user, getAuthToken } = useAuth()
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(false)
@@ -45,6 +45,7 @@ export default function ProfilePage() {
     githubLink: '',
     skills: []
   })
+  const [error, setError] = useState<string | null>(null)
 
   const commonSkills = [
     'JavaScript', 'TypeScript', 'React', 'Vue', 'Angular', 'Node.js',
@@ -58,19 +59,21 @@ export default function ProfilePage() {
   ]
 
   const fetchProfile = async () => {
+    setLoading(true);
     try {
-      const headers: Record<string, string> = {}
-      const authHeaders = getAuthHeaders()
-      if (authHeaders.Authorization) {
-        headers.Authorization = authHeaders.Authorization
+      const token = getAuthToken();
+      if (!token) {
+        setError('You are not logged in.');
+        setLoading(false);
+        return;
       }
-
-      const response = await fetch('http://localhost:8080/api/auth/profile', {
-        headers
-      })
-      
+      const response = await fetch('/api/profile', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
       if (response.ok) {
-        const data = await response.json()
+        const data: Profile = await response.json();
         setProfile(data)
         setFormData({
           username: data.username || '',
@@ -109,20 +112,20 @@ export default function ProfilePage() {
 
   const handleSave = async () => {
     try {
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json'
+      const token = getAuthToken();
+      if (!token) {
+        setError('Authentication error.');
+        setLoading(false);
+        return;
       }
-      
-      const authHeaders = getAuthHeaders()
-      if (authHeaders.Authorization) {
-        headers.Authorization = authHeaders.Authorization
-      }
-
-      const response = await fetch('http://localhost:8080/api/auth/profile', {
+      const response = await fetch('/api/profile', {
         method: 'PUT',
-        headers,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify(formData)
-      })
+      });
 
       if (response.ok) {
         await fetchProfile()

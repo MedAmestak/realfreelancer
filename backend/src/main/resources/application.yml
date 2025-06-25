@@ -36,7 +36,7 @@ server:
 
 # JWT Configuration
 jwt:
-  secret: ${JWT_SECRET:insecure-default-secret-key-for-development-only-change-me}
+  secret: ${JWT_SECRET:6fdfe06ffff9f2a9ce7dfbf74b9e9b4c4aae0eddb6e357c6ad2b136bb3e4b9b4}
   expiration: 86400000 # 24 hours
 
 # CORS Configuration

@@ -3,6 +3,7 @@ package com.realfreelancer.dto;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import jakarta.validation.groups.Default;
 
 import java.util.Set;
 import java.util.HashSet;
@@ -21,11 +22,13 @@ public class AuthRequest {
     private String password;
     
     private String githubLink;
+    
     private Set<String> skills;
+    
     private String bio;
     
-    public interface Registration {}
-    public interface Login {}
+    public interface Registration extends Default {}
+    public interface Login extends Default {}
     
     // Getters and setters
     public String getUsername() {
@@ -61,11 +64,11 @@ public class AuthRequest {
     }
     
     public Set<String> getSkills() {
-        return skills != null ? new HashSet<>(skills) : new HashSet<>();
+        return (skills == null) ? null : new HashSet<>(skills);
     }
     
     public void setSkills(Set<String> skills) {
-        this.skills = skills != null ? new HashSet<>(skills) : new HashSet<>();
+        this.skills = (skills == null) ? null : new HashSet<>(skills);
     }
     
     public String getBio() {
@@ -75,4 +78,4 @@ public class AuthRequest {
     public void setBio(String bio) {
         this.bio = bio;
     }
-} 
+}

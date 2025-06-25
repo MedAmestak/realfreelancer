@@ -6,7 +6,7 @@ import { Search, Filter, Briefcase } from 'lucide-react'
 import Header from '../../components/Header'
 import ProjectCard from '../../components/ProjectCard'
 import FilterBar from '../../components/FilterBar'
-import { useAuth } from '../../hooks/useAuth'
+import { useAuth } from '../../src/contexts/AuthContext'
 
 interface Project {
   id: number;

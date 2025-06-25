@@ -4,7 +4,9 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Search, Filter, Star, Users, Briefcase, Award } from 'lucide-react'
 import Header from '../components/Header'
-import { useAuth } from '../hooks/useAuth'
+import ProjectCard from '../components/ProjectCard'
+import FilterBar from '../components/FilterBar'
+import { useAuth } from '../src/contexts/AuthContext'
 
 interface Project {
   id: number;

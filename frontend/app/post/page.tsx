@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { Plus, Save, ArrowLeft } from 'lucide-react'
 import Header from '../../components/Header'
-import { useAuth } from '../../hooks/useAuth'
+import { useAuth } from '../../src/contexts/AuthContext'
 
 export default function PostProjectPage() {
   const router = useRouter()

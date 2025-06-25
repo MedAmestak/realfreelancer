@@ -7,25 +7,29 @@ import com.realfreelancer.model.User;
 import com.realfreelancer.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import com.realfreelancer.dto.AuthUserDTO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.LocalDateTime;
-import java.util.Date;
 
 @RestController
 @RequestMapping("/api/auth")
 @CrossOrigin(origins = "http://localhost:3000")
 public class AuthController {
+
+    private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 
     @Autowired
     private AuthenticationManager authenticationManager;
@@ -38,82 +42,58 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@Validated(AuthRequest.Registration.class) @RequestBody AuthRequest authRequest) {
+        logger.info("Registering user with email: {}", authRequest.getEmail());
         try {
-            // Check if username or email already exists
-            if (userService.existsByUsername(authRequest.getUsername())) {
-                return ResponseEntity.badRequest().body("Username is already taken!");
-            }
+            User savedUser = userService.registerUser(authRequest);
+            logger.info("User {} registered successfully with ID: {}", savedUser.getUsername(), savedUser.getId());
 
-            if (userService.existsByEmail(authRequest.getEmail())) {
-                return ResponseEntity.badRequest().body("Email is already in use!");
-            }
+            final String token = jwtTokenProvider.generateToken(savedUser.getEmail());
 
-            // Create new user
-            User user = new User();
-            user.setUsername(authRequest.getUsername());
-            user.setEmail(authRequest.getEmail());
-            user.setPassword(authRequest.getPassword()); // Will be encoded in service
-            user.setGithubLink(authRequest.getGithubLink());
-            user.setSkills(authRequest.getSkills());
-            user.setBio(authRequest.getBio());
-
-            User savedUser = userService.createUser(user);
-
-            // Generate JWT token
-            String token = jwtTokenProvider.generateToken(savedUser.getEmail());
-            Date expiration = jwtTokenProvider.getExpirationDateFromToken(token);
-
-            AuthResponse authResponse = new AuthResponse(token, savedUser.getId(), 
-                savedUser.getUsername(), savedUser.getEmail());
+            AuthResponse authResponse = new AuthResponse(token, savedUser.getId(), savedUser.getUsername(), savedUser.getEmail());
             authResponse.setGithubLink(savedUser.getGithubLink());
             authResponse.setReputationPoints(savedUser.getReputationPoints());
-            authResponse.setExpiresAt(LocalDateTime.ofInstant(expiration.toInstant(), 
-                java.time.ZoneId.systemDefault()));
+            authResponse.setExpiresAt(LocalDateTime.ofInstant(jwtTokenProvider.getExpirationDateFromToken(token).toInstant(), java.time.ZoneId.systemDefault()));
 
-            return ResponseEntity.ok(authResponse);
-
+            logger.info("Token generated for user {}.", savedUser.getUsername());
+            return new ResponseEntity<>(authResponse, HttpStatus.CREATED);
+        } catch (IllegalArgumentException e) {
+            logger.warn("Registration failed for email {}: {}", authRequest.getEmail(), e.getMessage());
+            return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Registration failed: Invalid data provided");
+            logger.error("Exception during user registration for email: {}", authRequest.getEmail(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An internal error occurred during registration.");
         }
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> authenticateUser(@Valid @RequestBody AuthRequest authRequest) {
+    public ResponseEntity<?> authenticateUser(@Validated(AuthRequest.Login.class) @RequestBody AuthRequest authRequest) {
+        logger.info("Authenticating user with email: {}", authRequest.getEmail());
+        
         try {
-            // Find user by email
-            User user = userService.findByEmail(authRequest.getEmail())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + authRequest.getEmail()));
-
-            // Create authentication token with email
             Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                    authRequest.getEmail(), // Use email for authentication
-                    authRequest.getPassword()
-                )
+                new UsernamePasswordAuthenticationToken(authRequest.getEmail(), authRequest.getPassword())
             );
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
-            String token = jwtTokenProvider.generateToken(user.getEmail()); // Use email for token
-            Date expiration = jwtTokenProvider.getExpirationDateFromToken(token);
+            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+            String token = jwtTokenProvider.generateToken(userDetails.getUsername());
 
-            AuthResponse authResponse = new AuthResponse(token, user.getId(), 
-                user.getUsername(), user.getEmail());
+            User user = userService.findByEmail(authRequest.getEmail())
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + authRequest.getEmail()));
+
+            AuthResponse authResponse = new AuthResponse(token, user.getId(), user.getUsername(), user.getEmail());
             authResponse.setGithubLink(user.getGithubLink());
             authResponse.setReputationPoints(user.getReputationPoints());
-            authResponse.setExpiresAt(LocalDateTime.ofInstant(expiration.toInstant(), 
-                java.time.ZoneId.systemDefault()));
-
+            authResponse.setExpiresAt(LocalDateTime.ofInstant(jwtTokenProvider.getExpirationDateFromToken(token).toInstant(), java.time.ZoneId.systemDefault()));
             return ResponseEntity.ok(authResponse);
 
         } catch (UsernameNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
         } catch (BadCredentialsException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid password");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
         } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("An error occurred during login");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred during login");
         }
     }
 
@@ -132,16 +112,12 @@ public class AuthController {
 
     @GetMapping("/validate")
     public ResponseEntity<?> validateToken(@RequestHeader("Authorization") String token) {
-        try {
-            if (token != null && token.startsWith("Bearer ")) {
-                String jwt = token.substring(7);
-                if (jwtTokenProvider.validateToken(jwt)) {
-                    return ResponseEntity.ok("Token is valid");
-                }
+        if (token != null && token.startsWith("Bearer ")) {
+            String jwt = token.substring(7);
+            if (jwtTokenProvider.validateToken(jwt)) {
+                return ResponseEntity.ok(true);
             }
-            return ResponseEntity.badRequest().body("Invalid token");
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Token validation failed");
         }
+        return ResponseEntity.ok(false);
     }
-} 
+}

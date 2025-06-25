@@ -13,9 +13,10 @@ import {
   Star,
   Award,
   AlertCircle,
-  ExternalLink
+  ExternalLink,
+  Users
 } from 'lucide-react';
-import { useAuth } from '../../../hooks/useAuth';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface Notification {
   id: number;

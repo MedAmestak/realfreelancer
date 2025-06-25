@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { jwtDecode } from 'jwt-decode';
 
 interface User {
   id: number;
@@ -17,7 +18,7 @@ interface AuthContextType {
   token: string | null;
   login: (username: string, password: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
-  register: (userData: RegisterData) => Promise<boolean>;
+  register: (userData: RegisterData) => Promise<{ success: boolean; error?: string }>;
   loading: boolean;
   getAuthToken: () => string | null;
 }
@@ -43,6 +44,32 @@ export const useAuth = () => {
 interface AuthProviderProps {
   children: ReactNode;
 }
+
+const parseErrorResponse = async (response: Response): Promise<string> => {
+  const defaultError = "An unexpected error occurred. Please try again.";
+  try {
+    const errorData = await response.json();
+    if (errorData) {
+      if (typeof errorData === 'object' && Object.keys(errorData).length > 0) {
+        const messages = Object.values(errorData);
+        if (messages.every(m => typeof m === 'string')) {
+          return messages.join('. ');
+        }
+      }
+      if (errorData.message) return errorData.message;
+      if (errorData.error) return errorData.error;
+    }
+    const textError = await response.text();
+    return textError || defaultError;
+  } catch (err) {
+    try {
+      const textError = await response.text();
+      return textError || defaultError;
+    } catch (textErr) {
+      return defaultError;
+    }
+  }
+};
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -100,26 +127,29 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const authToken = data.token;
         localStorage.setItem('token', authToken);
         setToken(authToken);
+        // Decode the JWT to get user info
+        const decoded: any = jwtDecode(authToken);
+        setUser({
+          id: decoded.userId,
+          username: decoded.username,
+          email: decoded.email,
+          bio: decoded.bio,
+          skills: decoded.skills,
+          reputationPoints: decoded.reputationPoints,
+          isVerified: decoded.isVerified,
+        });
         await fetchUserProfile(authToken);
         return { success: true };
       } else {
-        let errorMessage = 'Login failed';
-        try {
-          const errorData = await response.json();
-          errorMessage = errorData.message || errorData.error || errorMessage;
-        } catch (err) {
-          try {
-            errorMessage = await response.text();
-          } catch {}
-        }
+        const errorMessage = await parseErrorResponse(response);
         return { success: false, error: errorMessage };
       }
     } catch (error) {
-      return { success: false, error: 'Network error' };
+      return { success: false, error: 'Network error. Please check your connection.' };
     }
   };
 
-  const register = async (userData: RegisterData): Promise<boolean> => {
+  const register = async (userData: RegisterData): Promise<{ success: boolean; error?: string }> => {
     try {
       const response = await fetch('http://localhost:8080/api/auth/register', {
         method: 'POST',
@@ -130,25 +160,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       });
 
       if (response.ok) {
-        const data = await response.json();
-        const authToken = data.token;
-        
-        localStorage.setItem('token', authToken);
-        setToken(authToken);
-        
-        // Fetch user profile
-        await fetchUserProfile(authToken);
-        return true;
+        // After successful registration, automatically log in the user
+        const loginResult = await login(userData.email, userData.password);
+        return loginResult;
       } else {
-        const errorData = await response.json();
-        // Safely log error without exposing sensitive data
-        console.error('Registration failed: Invalid data');
-        return false;
+        const errorMessage = await parseErrorResponse(response);
+        return { success: false, error: errorMessage };
       }
     } catch (error) {
-      // Safely log error without exposing sensitive data
-      console.error('Network error during registration');
-      return false;
+      return { success: false, error: 'Network error. Please check your connection.' };
     }
   };
 

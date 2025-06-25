@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
+import { useAuth } from '../../contexts/AuthContext';
 import { 
   BarChart3, 
   TrendingUp, 
@@ -17,7 +18,6 @@ import {
   Award,
   Search
 } from 'lucide-react';
-import { useAuth } from '../../../hooks/useAuth';
 
 interface DashboardStats {
   totalProjects: number;
@@ -26,6 +26,7 @@ interface DashboardStats {
   averageRating: number;
   completionRate: number;
   acceptanceRate: number;
+  status: string;
 }
 
 interface QuickStats {
@@ -81,21 +82,23 @@ interface ActivityItemProps {
 }
 
 const UserDashboard: React.FC = () => {
-  const { getAuthToken } = useAuth();
+  const { user, loading: authLoading, getAuthToken } = useAuth();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [quickStats, setQuickStats] = useState<QuickStats | null>(null);
   const [recentActivity, setRecentActivity] = useState<RecentActivity | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [dashboardLoading, setDashboardLoading] = useState(true);
   const [error, setError] = useState('');
 
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = useCallback(async () => {
+    if (!user) {
+      setError('You must be logged in to view your dashboard.');
+      setDashboardLoading(false);
+      return;
+    }
+    
+    setDashboardLoading(true);
     try {
       const token = getAuthToken();
-      if (!token) {
-        setError('You must be logged in to view your dashboard.');
-        setLoading(false);
-        return;
-      }
       const response = await fetch('http://localhost:8080/api/dashboard/user', {
         headers: {
           'Authorization': `Bearer ${token}`
@@ -112,28 +115,21 @@ const UserDashboard: React.FC = () => {
         setError('');
       } else if (response.status === 401) {
         setError('Session expired or unauthorized. Please log in again.');
-        setStats(null);
-        setQuickStats(null);
-        setRecentActivity(null);
       } else {
-        setError('Failed to fetch dashboard data: Server error');
-        setStats(null);
-        setQuickStats(null);
-        setRecentActivity(null);
+        setError('Failed to fetch dashboard data.');
       }
-    } catch (error) {
-      setError('Error fetching dashboard data: Network error');
-      setStats(null);
-      setQuickStats(null);
-      setRecentActivity(null);
+    } catch (err) {
+      setError('A network error occurred while fetching dashboard data.');
     } finally {
-      setLoading(false);
+      setDashboardLoading(false);
     }
-  };
+  }, [user, getAuthToken]);
 
   useEffect(() => {
-    fetchDashboardData();
-  }, []);
+    if (!authLoading) {
+      fetchDashboardData();
+    }
+  }, [authLoading, fetchDashboardData]);
 
   const handleNavigateToProjects = useCallback(() => {
     window.location.href = '/projects';
@@ -213,7 +209,7 @@ const UserDashboard: React.FC = () => {
     </div>
   );
 
-  if (loading) {
+  if (authLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
@@ -221,13 +217,21 @@ const UserDashboard: React.FC = () => {
     );
   }
 
-  if (error) {
+  if (!user || error) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="bg-red-100 text-red-700 px-6 py-4 rounded-lg shadow">
-          {error}
+          {error || 'You must be logged in to view the dashboard.'}
         </div>
       </div>
+    );
+  }
+
+  if (dashboardLoading) {
+    return (
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+        </div>
     );
   }
 
