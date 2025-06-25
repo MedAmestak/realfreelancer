@@ -7,6 +7,7 @@ import Header from '../components/Header'
 import ProjectCard from '../components/ProjectCard'
 import FilterBar from '../components/FilterBar'
 import { useAuth } from '../src/contexts/AuthContext'
+import Link from 'next/link'
 
 interface Project {
   id: number;
@@ -237,29 +238,21 @@ export default function HomePage() {
               )}
               {!loading && filteredProjects.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                  {filteredProjects.map((project, index) => (
-                    <motion.div
-                      key={project.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.4, delay: index * 0.1 }}
-                      className="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow"
-                    >
-                      <h3 className="text-lg font-semibold text-gray-900 mb-2">{project.title}</h3>
-                      <p className="text-gray-600 text-sm mb-4 line-clamp-3">{project.description}</p>
-                      <div className="flex items-center justify-between text-sm text-gray-500 mb-3">
-                        <span>${project.budget}</span>
-                        <span>{project.status}</span>
-                      </div>
-                      <div className="flex flex-wrap gap-1">
-                        {project.requiredSkills?.slice(0, 3).map((skill: string) => (
-                          <span key={skill} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
-                            {skill}
-                          </span>
-                        ))}
-                      </div>
-                    </motion.div>
-                  ))}
+                  {filteredProjects
+                    .filter(project => project.client && project.client.username)
+                    .map((project, index) => (
+                      <motion.div
+                        key={project.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.4, delay: index * 0.1 }}
+                        className="h-full"
+                      >
+                        <Link href={`/projects/${project.client.username}/${project.id}`} passHref className="h-full block">
+                          <ProjectCard project={project} />
+                        </Link>
+                      </motion.div>
+                    ))}
                 </div>
               ) : (
                 <div className="text-center py-12">

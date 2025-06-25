@@ -52,7 +52,7 @@ public class AuthController {
             AuthResponse authResponse = new AuthResponse(token, savedUser.getId(), savedUser.getUsername(), savedUser.getEmail());
             authResponse.setGithubLink(savedUser.getGithubLink());
             authResponse.setReputationPoints(savedUser.getReputationPoints());
-            authResponse.setExpiresAt(LocalDateTime.ofInstant(jwtTokenProvider.getExpirationDateFromToken(token).toInstant(), java.time.ZoneId.systemDefault()));
+            // authResponse.setExpiresAt(LocalDateTime.ofInstant(jwtTokenProvider.getExpirationDateFromToken(token).toInstant(), java.time.ZoneId.systemDefault()));
 
             logger.info("Token generated for user {}.", savedUser.getUsername());
             return new ResponseEntity<>(authResponse, HttpStatus.CREATED);
@@ -77,7 +77,7 @@ public class AuthController {
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
             UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-            String token = jwtTokenProvider.generateToken(userDetails.getUsername());
+            String token = jwtTokenProvider.generateToken(authentication);
 
             User user = userService.findByEmail(authRequest.getEmail())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + authRequest.getEmail()));

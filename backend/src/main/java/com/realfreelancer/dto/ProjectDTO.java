@@ -14,7 +14,7 @@ public class ProjectDTO {
     private Set<String> requiredSkills;
     private String status;
     private String type;
-    private String clientUsername;
+    private ClientDTO client;
 
     // Getters and setters
     public Long getId() { return id; }
@@ -37,6 +37,6 @@ public class ProjectDTO {
     public void setStatus(String status) { this.status = status; }
     public String getType() { return type; }
     public void setType(String type) { this.type = type; }
-    public String getClientUsername() { return clientUsername; }
-    public void setClientUsername(String clientUsername) { this.clientUsername = clientUsername; }
+    public ClientDTO getClient() { return client; }
+    public void setClient(ClientDTO client) { this.client = client; }
 } 

@@ -7,6 +7,7 @@ import Header from '../../components/Header'
 import ProjectCard from '../../components/ProjectCard'
 import FilterBar from '../../components/FilterBar'
 import { useAuth } from '../../src/contexts/AuthContext'
+import Link from 'next/link'
 
 interface Project {
   id: number;
@@ -140,6 +141,8 @@ export default function ProjectsPage() {
 
           {/* Projects Grid */}
           <div className="lg:w-3/4">
+            {/* Debug: Pure HTML link test */}
+            <a href="https://www.google.com" style={{ display: 'block', background: 'green', color: 'white', padding: 20, margin: 20 }}>GOOGLE TEST LINK</a>
             {error && (
               <div className="bg-red-100 text-red-700 px-4 py-3 rounded-lg mb-6">{error}</div>
             )}
@@ -170,7 +173,14 @@ export default function ProjectsPage() {
             ) : filteredProjects.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {filteredProjects.map(project => (
-                  <ProjectCard key={project.id} project={project} />
+                  <Link
+                    key={project.id}
+                    href={`/projects/${project.client.username}/${project.id}`}
+                    className="block"
+                    style={{ textDecoration: 'none' }}
+                  >
+                    <ProjectCard project={project} />
+                  </Link>
                 ))}
               </div>
             ) : (

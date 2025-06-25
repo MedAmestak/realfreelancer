@@ -10,6 +10,7 @@ import com.realfreelancer.service.ProjectService;
 import com.realfreelancer.dto.ProjectRequest;
 import com.realfreelancer.dto.ApplicationRequest;
 import com.realfreelancer.dto.ProjectDTO;
+import com.realfreelancer.dto.ClientDTO;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -73,7 +74,13 @@ class ProjectController {
                 dto.setRequiredSkills(project.getRequiredSkills());
                 dto.setStatus(project.getStatus().name());
                 dto.setType(project.getType().name());
-                dto.setClientUsername(project.getClient() != null ? project.getClient().getUsername() : null);
+                if (project.getClient() != null) {
+                    dto.setClient(new ClientDTO(
+                        project.getClient().getId(),
+                        project.getClient().getUsername(),
+                        project.getClient().getEmail()
+                    ));
+                }
                 return dto;
             }).collect(Collectors.toList());
             return ResponseEntity.ok(dtos);
@@ -92,7 +99,23 @@ class ProjectController {
                 Project p = project.get();
                 p.incrementViewCount();
                 projectRepository.save(p);
-                return ResponseEntity.ok(project.get());
+                ProjectDTO dto = new ProjectDTO();
+                dto.setId(p.getId());
+                dto.setTitle(p.getTitle());
+                dto.setDescription(p.getDescription());
+                dto.setBudget(p.getBudget());
+                dto.setDeadline(p.getDeadline());
+                dto.setRequiredSkills(p.getRequiredSkills());
+                dto.setStatus(p.getStatus().name());
+                dto.setType(p.getType().name());
+                if (p.getClient() != null) {
+                    dto.setClient(new ClientDTO(
+                        p.getClient().getId(),
+                        p.getClient().getUsername(),
+                        p.getClient().getEmail()
+                    ));
+                }
+                return ResponseEntity.ok(dto);
             } else {
                 return ResponseEntity.notFound().build();
             }
@@ -107,9 +130,9 @@ class ProjectController {
         try {
             // Get authenticated user
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            String username = authentication.getName();
-            User client = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+            String email = authentication.getName();
+            User client = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Authenticated user not found in database"));
 
             // Validate budget
             if (projectRequest.getBudget() == null || projectRequest.getBudget().compareTo(BigDecimal.ZERO) < 0) {
@@ -364,16 +387,5 @@ class ProjectController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Error fetching featured projects: Server error");
         }
-    }
-}
-
-@ControllerAdvice
-class GlobalExceptionHandler {
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<?> handleValidationExceptions(MethodArgumentNotValidException ex) {
-        java.util.Map<String, String> errors = new java.util.HashMap<>();
-        ex.getBindingResult().getFieldErrors().forEach(error ->
-            errors.put(error.getField(), error.getDefaultMessage()));
-        return ResponseEntity.badRequest().body(errors);
     }
 } 
