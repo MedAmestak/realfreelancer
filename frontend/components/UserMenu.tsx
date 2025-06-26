@@ -35,8 +35,7 @@ export default function UserMenu() {
           <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
             <div className="px-1 py-1 ">
                 <div className="px-4 py-2 border-b border-gray-200">
-                    <p className="text-sm text-gray-900">Signed in as</p>
-                    <p className="text-sm font-medium text-gray-900 truncate">{user.username}</p>
+                    <p className="text-sm text-gray-900">Welcome {user.username}</p>
                 </div>
               <Menu.Item>
                 {({ active }) => (
