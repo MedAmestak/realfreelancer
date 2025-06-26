@@ -185,7 +185,8 @@ export default function HomePage() {
               <div className="bg-white rounded-lg shadow-sm p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Filter by Skills</h3>
                 <div className="space-y-2">
-                  {['React', 'Node.js', 'Python', 'Java', 'JavaScript', 'TypeScript'].map(skill => (
+                  {['JavaScript', 'TypeScript', 'React', 'Vue', 'Angular', 'Node.js', 'Python', 'Java', 'C#', 'PHP', 'Ruby', 'Go', 'Rust', 'HTML', 'CSS', 'Sass', 'Tailwind CSS', 'Bootstrap', 'MongoDB', 'PostgreSQL', 'MySQL', 'Redis', 'Docker', 'Kubernetes', 'AWS', 'Azure', 'Google Cloud', 'Git', 'GitHub', 'CI/CD', 'Testing', 'DevOps', 'UI/UX', 'Design', 'Mobile', 'iOS', 'Android', 'Machine Learning', 'AI', 'Data Science', 'Blockchain'
+                ].map(skill => (
                     <label key={skill} className="flex items-center">
                       <input
                         type="checkbox"

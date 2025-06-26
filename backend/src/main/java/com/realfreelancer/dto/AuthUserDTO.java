@@ -35,8 +35,8 @@ public class AuthUserDTO {
     public void setBio(String bio) { this.bio = bio; }
     public String getGithubLink() { return githubLink; }
     public void setGithubLink(String githubLink) { this.githubLink = githubLink; }
-    public Set<String> getSkills() { return skills; }
-    public void setSkills(Set<String> skills) { this.skills = skills; }
+    public Set<String> getSkills() { return (skills == null) ? null : new java.util.HashSet<>(skills); }
+    public void setSkills(Set<String> skills) { this.skills = (skills == null) ? null : new java.util.HashSet<>(skills); }
     public Integer getReputationPoints() { return reputationPoints; }
     public void setReputationPoints(Integer reputationPoints) { this.reputationPoints = reputationPoints; }
     public boolean isVerified() { return isVerified; }

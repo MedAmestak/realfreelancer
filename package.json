@@ -6,5 +6,10 @@
     "jest": "^30.0.2",
     "jest-environment-jsdom": "^30.0.2",
     "ts-jest": "^29.4.0"
+  },
+  "dependencies": {
+    "@headlessui/react": "^2.2.4",
+    "@heroicons/react": "^2.2.0",
+    "lucide-react": "^0.523.0"
   }
 }

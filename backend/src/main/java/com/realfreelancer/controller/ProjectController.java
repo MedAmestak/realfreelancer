@@ -74,6 +74,7 @@ class ProjectController {
                 dto.setRequiredSkills(project.getRequiredSkills());
                 dto.setStatus(project.getStatus().name());
                 dto.setType(project.getType().name());
+                dto.setCreatedAt(project.getCreatedAt());
                 if (project.getClient() != null) {
                     dto.setClient(new ClientDTO(
                         project.getClient().getId(),
@@ -108,6 +109,7 @@ class ProjectController {
                 dto.setRequiredSkills(p.getRequiredSkills());
                 dto.setStatus(p.getStatus().name());
                 dto.setType(p.getType().name());
+                dto.setCreatedAt(p.getCreatedAt());
                 if (p.getClient() != null) {
                     dto.setClient(new ClientDTO(
                         p.getClient().getId(),

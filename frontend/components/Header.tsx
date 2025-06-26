@@ -3,8 +3,9 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Menu, X, User, Plus, LogOut, LogIn } from 'lucide-react'
+import { Menu, X, Bell, LogOut } from 'lucide-react'
 import { useAuth } from '../src/contexts/AuthContext'
+import UserMenu from './UserMenu'
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -45,14 +46,12 @@ export default function Header() {
           <div className="hidden md:flex items-center space-x-4">
             {user ? (
               <div className="flex items-center space-x-4">
-                <span className="text-sm text-gray-600">Welcome, {user.username}</span>
-                <button
-                  onClick={logout}
-                  className="flex items-center space-x-2 text-gray-600 hover:text-red-600 transition-colors"
-                >
-                  <LogOut className="w-4 h-4" />
-                  <span>Logout</span>
+                <button className="relative p-2 text-gray-600 rounded-full hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus:ring">
+                  <span className="absolute top-0 right-0 h-2 w-2 mt-1 mr-1 bg-red-500 rounded-full"></span>
+                  <span className="sr-only">Notifications</span>
+                  <Bell className="h-6 w-6" />
                 </button>
+                <UserMenu />
               </div>
             ) : (
               <div className="flex items-center space-x-4">

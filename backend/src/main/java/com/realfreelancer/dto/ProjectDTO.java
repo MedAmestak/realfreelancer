@@ -15,6 +15,7 @@ public class ProjectDTO {
     private String status;
     private String type;
     private ClientDTO client;
+    private LocalDateTime createdAt;
 
     // Getters and setters
     public Long getId() { return id; }
@@ -39,4 +40,6 @@ public class ProjectDTO {
     public void setType(String type) { this.type = type; }
     public ClientDTO getClient() { return client; }
     public void setClient(ClientDTO client) { this.client = client; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 } 

@@ -122,30 +122,30 @@ public class NotificationController {
     }
 
     // Delete notification
-    @DeleteMapping("/{notificationId}")
-    public ResponseEntity<?> deleteNotification(@PathVariable Long notificationId) {
-        try {
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            String username = authentication.getName();
-            User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+    // @DeleteMapping("/{notificationId}")
+    // public ResponseEntity<?> deleteNotification(@PathVariable Long notificationId) {
+    //     try {
+    //         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    //         String username = authentication.getName();
+    //         User user = userRepository.findByUsername(username)
+    //             .orElseThrow(() -> new RuntimeException("User not found"));
 
-            Optional<Notification> notificationOpt = notificationRepository.findById(notificationId);
-            if (!notificationOpt.isPresent()) {
-                return ResponseEntity.notFound().build();
-            }
+    //         Optional<Notification> notificationOpt = notificationRepository.findById(notificationId);
+    //         if (!notificationOpt.isPresent()) {
+    //             return ResponseEntity.notFound().build();
+    //         }
 
-            Notification notification = notificationOpt.get();
-            if (!notification.getUser().getId().equals(user.getId())) {
-                return ResponseEntity.status(403).body("You can only delete your own notifications");
-            }
+    //         Notification notification = notificationOpt.get();
+    //         if (!notification.getUser().getId().equals(user.getId())) {
+    //             return ResponseEntity.status(403).body("You can only delete your own notifications");
+    //         }
 
-            notificationRepository.delete(notification);
-            return ResponseEntity.ok("Notification deleted successfully");
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Error deleting notification: " + e.getMessage());
-        }
-    }
+    //         notificationRepository.delete(notification);
+    //         return ResponseEntity.ok("Notification deleted successfully");
+    //     } catch (Exception e) {
+    //         return ResponseEntity.badRequest().body("Error deleting notification: " + e.getMessage());
+    //     }
+    // }
 
     // Get notification preferences
     @GetMapping("/preferences")
