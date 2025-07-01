@@ -61,9 +61,6 @@ export default function HomePage() {
       if (response.ok) {
         const data = await response.json();
         setProjects(data.content || data)
-      } else if (response.status === 401) {
-        setError('You must be logged in to view projects.');
-        setProjects([]);
       } else {
         setError('Failed to fetch projects: Server error');
         setProjects([]);

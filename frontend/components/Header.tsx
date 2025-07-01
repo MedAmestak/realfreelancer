@@ -26,21 +26,7 @@ export default function Header() {
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
-            <Link href="/" className="text-gray-600 hover:text-primary-600 transition-colors">
-              Projects
-            </Link>
-            {user && (
-              <>
-                <Link href="/post" className="text-gray-600 hover:text-primary-600 transition-colors">
-                  Post Project
-                </Link>
-                <Link href="/profile" className="text-gray-600 hover:text-primary-600 transition-colors">
-                  Profile
-                </Link>
-              </>
-            )}
-          </nav>
+
 
           {/* Auth Buttons */}
           <div className="hidden md:flex items-center space-x-4">

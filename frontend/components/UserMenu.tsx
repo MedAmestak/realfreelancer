@@ -3,7 +3,7 @@ import { Fragment } from 'react';
 import { ChevronDownIcon, UserCircleIcon } from '@heroicons/react/20/solid';
 import Link from 'next/link';
 import { useAuth } from '../src/contexts/AuthContext'; // Adjust path as needed
-import { User, LogOut, Settings } from 'lucide-react';
+import { User, LogOut, Settings, ScatterChart, LayoutDashboardIcon, BookMarkedIcon, BookMarked, LucideBookMarked, BookCheckIcon, LucidePodcast, PoundSterling, BookmarkPlus } from 'lucide-react';
 
 export default function UserMenu() {
   const { user, logout } = useAuth();
@@ -37,6 +37,32 @@ export default function UserMenu() {
                 <div className="px-4 py-2 border-b border-gray-200">
                     <p className="text-sm text-gray-900">Welcome {user.username}</p>
                 </div>
+                <Menu.Item>
+                {({ active }) => (
+                  <Link
+                    href="/dashboard"
+                    className={`${
+                      active ? 'bg-primary-500 text-white' : 'text-gray-900'
+                    } group flex w-full items-center rounded-md px-2 py-2 text-sm`}
+                  >
+                    <LayoutDashboardIcon className="mr-2 h-5 w-5" aria-hidden="true" />
+                    Dashboard
+                  </Link>
+                )}
+              </Menu.Item>
+              <Menu.Item>
+                {({ active }) => (
+                  <Link
+                    href="/post"
+                    className={`${
+                      active ? 'bg-primary-500 text-white' : 'text-gray-900'
+                    } group flex w-full items-center rounded-md px-2 py-2 text-sm`}
+                  >
+                    <BookmarkPlus className="mr-2 h-5 w-5" aria-hidden="true" />
+                    Post New Project
+                  </Link>
+                )}
+              </Menu.Item>
               <Menu.Item>
                 {({ active }) => (
                   <Link

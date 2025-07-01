@@ -15,17 +15,11 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
   useEffect(() => {
     const fetchProject = async () => {
       const token = getAuthToken();
-      if (!token) {
-        setError("You must be logged in to view this page.");
-        setLoading(false);
-        return;
-      }
-
+      const headers: Record<string, string> = {};
+      if (token) headers['Authorization'] = `Bearer ${token}`;
       try {
         const response = await fetch(`http://localhost:8080/api/projects/${id}`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
+          headers,
         });
 
         if (response.ok) {
@@ -108,6 +102,13 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
                     <span>{formatDate(project.deadline)}</span>
                 </div>
 
+                {(!user) && (
+                    <Link href="/login"
+                        className="mt-6 w-full flex items-center justify-center bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold">
+                        <Send className="w-5 h-5 mr-2" />
+                        Login to Apply
+                    </Link>
+                )}
                 {user && project.client && user.username !== project.client.username && (
                     <Link href={`/chat/${project.client.username}?projectId=${project.id}`}
                         className="mt-6 w-full flex items-center justify-center bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold">
