@@ -10,6 +10,10 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
+import com.realfreelancer.dto.ConversationSummary;
+import com.realfreelancer.dto.MessageDTO;
+import com.realfreelancer.model.Project;
 
 @Service
 public class ChatService {
@@ -23,7 +27,7 @@ public class ChatService {
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
 
-    public Message sendMessage(Message message) {
+    public MessageDTO sendMessage(Message message) {
         // Set timestamp
         message.setCreatedAt(LocalDateTime.now());
         message.setIsRead(false);
@@ -36,17 +40,17 @@ public class ChatService {
         messagingTemplate.convertAndSendToUser(
             recipientUsername,
             "/queue/messages",
-            savedMessage
+            toDTO(savedMessage)
         );
         
-        return savedMessage;
+        return toDTO(savedMessage);
     }
 
-    public List<Message> getConversation(User user1, User user2, int page, int size) {
+    public List<MessageDTO> getConversation(User user1, User user2, int page, int size) {
         return messageRepository.findConversationBetweenUsers(user1, user2, 
             org.springframework.data.domain.PageRequest.of(page, size, 
                 org.springframework.data.domain.Sort.by("createdAt").descending())
-        ).getContent();
+        ).getContent().stream().map(this::toDTO).collect(Collectors.toList());
     }
 
     public void markMessagesAsRead(User sender, User receiver) {
@@ -57,11 +61,19 @@ public class ChatService {
         return messageRepository.countUnreadMessagesByReceiver(user);
     }
 
-    public List<Object[]> getUserConversations(User user) {
-        return messageRepository.findUserConversations(user, 
-            org.springframework.data.domain.PageRequest.of(0, 20, 
-                org.springframework.data.domain.Sort.by("createdAt").descending())
-        );
+    public List<ConversationSummary> getUserConversations(User user, int page, int size) {
+        List<Object[]> raw = messageRepository.findUserConversationsNative(user.getId());
+        return raw.stream()
+            .skip((long) page * size)
+            .limit(size)
+            .map(obj -> new ConversationSummary(
+                ((Number)obj[0]).longValue(), // userId
+                (String)obj[1], // username
+                (String)obj[2], // avatarUrl
+                obj[3] != null ? ((java.sql.Timestamp)obj[3]).toLocalDateTime() : null, // lastMessageTime
+                obj[4] != null ? ((Number)obj[4]).longValue() : 0L // unreadCount
+            ))
+            .collect(Collectors.toList());
     }
 
     public void deleteMessage(Long messageId, User user) {
@@ -73,5 +85,33 @@ public class ChatService {
         }
         
         messageRepository.delete(message);
+    }
+
+    public void sendSystemMessage(User sender, User receiver, String content, Project project) {
+        Message message = new Message();
+        message.setSender(sender);
+        message.setReceiver(receiver);
+        message.setContent(content);
+        message.setType(Message.MessageType.SYSTEM);
+        message.setIsRead(false);
+        message.setCreatedAt(LocalDateTime.now());
+        message.setProject(project);
+        messageRepository.save(message);
+    }
+
+    // Helper to map Message to MessageDTO
+    private MessageDTO toDTO(Message message) {
+        return new MessageDTO(
+            message.getId(),
+            message.getContent(),
+            message.getSender().getId(),
+            message.getSender().getUsername(),
+            message.getReceiver().getId(),
+            message.getReceiver().getUsername(),
+            message.getIsRead(),
+            message.getAttachmentUrl(),
+            message.getType().name(),
+            message.getCreatedAt()
+        );
     }
 } 

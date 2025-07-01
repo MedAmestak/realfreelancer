@@ -211,16 +211,16 @@ const UserDashboard: React.FC = () => {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600"></div>
       </div>
     );
   }
 
   if (!user || error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="bg-red-100 text-red-700 px-6 py-4 rounded-lg shadow">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="bg-red-50 text-red-700 px-6 py-4 rounded-lg shadow">
           {error || 'You must be logged in to view the dashboard.'}
         </div>
       </div>
@@ -229,159 +229,108 @@ const UserDashboard: React.FC = () => {
 
   if (dashboardLoading) {
     return (
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600"></div>
+      </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="min-h-screen bg-gray-50 py-10">
+      <div className="max-w-4xl mx-auto space-y-10">
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
-        >
-          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-600 mt-2">Welcome back! Here&apos;s what&apos;s happening with your projects.</p>
-        </motion.div>
-
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <StatCard
-            title="Total Projects"
-            value={stats?.totalProjects || 0}
-            icon={Briefcase}
-            color="bg-blue-500"
-            trend={{ value: 12, isPositive: true }}
-          />
-          <StatCard
-            title="Applications"
-            value={stats?.totalApplications || 0}
-            icon={FileText}
-            color="bg-green-500"
-            trend={{ value: 8, isPositive: true }}
-          />
-          <StatCard
-            title="Average Rating"
-            value={stats?.averageRating?.toFixed(1) || '0.0'}
-            icon={Star}
-            color="bg-yellow-500"
-            trend={{ value: 5, isPositive: true }}
-          />
-          <StatCard
-            title="Completion Rate"
-            value={`${stats?.completionRate || 0}%`}
-            icon={CheckCircle}
-            color="bg-purple-500"
-            trend={{ value: -2, isPositive: false }}
-          />
+        <div>
+          <h1 className="text-2xl font-extrabold text-gray-900 mb-2">Welcome back, {user.username}</h1>
+          <p className="text-xm text-gray-500">Your freelance overview at a glance.</p>
         </div>
 
-        {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-            <div className="flex items-center">
-              <MessageSquare className="w-5 h-5 text-blue-600 mr-2" />
-              <span className="text-sm font-medium text-gray-600">Unread Messages</span>
-            </div>
-            <p className="text-2xl font-bold text-gray-900 mt-1">{quickStats?.unreadMessages || 0}</p>
+        {/* Stats */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+          <div className="bg-white rounded-2xl shadow p-6 flex flex-col items-center hover:shadow-md transition">
+            <Briefcase className="w-8 h-8 text-blue-500 mb-2" />
+            <span className="text-3xl font-bold text-gray-900">{stats?.totalProjects ?? 0}</span>
+            <span className="text-sm text-gray-500 mt-1">Projects</span>
           </div>
-          <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-            <div className="flex items-center">
-              <Clock className="w-5 h-5 text-yellow-600 mr-2" />
-              <span className="text-sm font-medium text-gray-600">Pending Applications</span>
-            </div>
-            <p className="text-2xl font-bold text-gray-900 mt-1">{quickStats?.pendingApplications || 0}</p>
+          <div className="bg-white rounded-2xl shadow p-6 flex flex-col items-center hover:shadow-md transition">
+            <FileText className="w-8 h-8 text-green-500 mb-2" />
+            <span className="text-3xl font-bold text-gray-900">{stats?.totalApplications ?? 0}</span>
+            <span className="text-sm text-gray-500 mt-1">Applications</span>
           </div>
-          <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-            <div className="flex items-center">
-              <TrendingUp className="w-5 h-5 text-green-600 mr-2" />
-              <span className="text-sm font-medium text-gray-600">Active Projects</span>
-            </div>
-            <p className="text-2xl font-bold text-gray-900 mt-1">{quickStats?.activeProjects || 0}</p>
+          <div className="bg-white rounded-2xl shadow p-6 flex flex-col items-center hover:shadow-md transition">
+            <Star className="w-8 h-8 text-yellow-500 mb-2" />
+            <span className="text-3xl font-bold text-gray-900">{stats?.averageRating?.toFixed(1) ?? '0.0'}</span>
+            <span className="text-sm text-gray-500 mt-1">Avg. Rating</span>
           </div>
-          <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-            <div className="flex items-center">
-              <Award className="w-5 h-5 text-purple-600 mr-2" />
-              <span className="text-sm font-medium text-gray-600">Completed</span>
-            </div>
-            <p className="text-2xl font-bold text-gray-900 mt-1">{quickStats?.completedProjects || 0}</p>
+          <div className="bg-white rounded-2xl shadow p-6 flex flex-col items-center hover:shadow-md transition">
+            <CheckCircle className="w-8 h-8 text-purple-500 mb-2" />
+            <span className="text-3xl font-bold text-gray-900">{stats?.completionRate ?? 0}%</span>
+            <span className="text-sm text-gray-500 mt-1">Completion</span>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Quick Actions */}
-          <div className="lg:col-span-1">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
-            <div className="space-y-4">
-              <QuickActionCard
-                title="Post Project"
-                description="Create a new project and find the perfect freelancer"
-                icon={Briefcase}
-                color="bg-blue-500"
-                action={handleNavigateToNewProject}
-              />
-              <QuickActionCard
-                title="Browse Projects"
-                description="Find projects that match your skills"
-                icon={Search}
-                color="bg-green-500"
-                action={handleNavigateToProjects}
-              />
-              <QuickActionCard
-                title="View Messages"
-                description="Check your conversations and messages"
-                icon={MessageSquare}
-                color="bg-purple-500"
-                action={handleNavigateToChat}
-              />
+        {/* Quick Actions */}
+        <div className="w-full my-10">
+  <div className="flex justify-between w-full gap-4">
+    <button 
+      onClick={() => (window.location.href = '/post')}
+      className="flex items-center gap-2 bg-green-600 hover:bg-purple text-purple-500 px-6 py-2 rounded-xl font-semibold shadow transition"
+    >
+      <Briefcase className="w-5 h-5" /> Post Project
+    </button>
+
+    <button
+      onClick={() => (window.location.href = '/projects')}
+      className="flex items-center gap-2 bg-green-600 hover:bg-purple-700 text-purple-500 px-6 py-3 rounded-xl font-semibold shadow transition"
+    >
+      <Search className="w-5 h-5" /> Browse Projects
+    </button>
+
+    <button
+      onClick={() => (window.location.href = '/chat')}
+      className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-blue px-6 py-3 rounded-xl font-semibold shadow transition"
+    >
+      <MessageSquare className="w-5 h-5" /> View Messages
+    </button>
+  </div>
+</div>
+
+
+        {/* Recent Activity */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div>
+            <h2 className="text-xl font-bold text-gray-900 mb-4">Recent Projects</h2>
+            <div className="bg-white rounded-2xl shadow p-4 space-y-3">
+              {recentActivity?.recentProjects && recentActivity.recentProjects.length > 0 ? (
+                recentActivity.recentProjects.map((project: RecentProject) => (
+                  <div key={project.id} className="flex justify-between items-center py-2 border-b last:border-b-0">
+                    <div>
+                      <div className="font-medium text-gray-800">{project.title}</div>
+                      <div className="text-xs text-gray-400">{new Date(project.createdAt).toLocaleDateString()}</div>
+                    </div>
+                    <span className="text-xs px-2 py-1 rounded bg-gray-100 text-gray-600 capitalize">{project.status}</span>
+                  </div>
+                ))
+              ) : (
+                <div className="text-gray-400 text-sm">No recent projects</div>
+              )}
             </div>
           </div>
-
-          {/* Recent Activity */}
-          <div className="lg:col-span-2">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Recent Activity</h2>
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100">
-              <div className="p-6">
-                <h3 className="text-lg font-medium text-gray-900 mb-4">Recent Projects</h3>
-                <div className="space-y-2">
-                  {recentActivity?.recentProjects && recentActivity.recentProjects.length > 0 ? (
-                    recentActivity.recentProjects.map((project: RecentProject) => (
-                      <ActivityItem
-                        key={`project-${project.id}`}
-                        type="project"
-                        title={project.title}
-                        time={new Date(project.createdAt).toLocaleDateString()}
-                        status={project.status?.toLowerCase()}
-                      />
-                    ))
-                  ) : (
-                    <p className="text-gray-500 text-sm">No recent projects</p>
-                  )}
-                </div>
-              </div>
-              
-              <div className="border-t border-gray-100 p-6">
-                <h3 className="text-lg font-medium text-gray-900 mb-4">Recent Applications</h3>
-                <div className="space-y-2">
-                  {recentActivity?.recentApplications && recentActivity.recentApplications.length > 0 ? (
-                    recentActivity.recentApplications.map((application: RecentApplication) => (
-                      <ActivityItem
-                        key={`application-${application.id}`}
-                        type="application"
-                        title={`Application for ${application.projectTitle || 'Project'}`}
-                        time={new Date(application.createdAt).toLocaleDateString()}
-                        status={application.status?.toLowerCase()}
-                      />
-                    ))
-                  ) : (
-                    <p className="text-gray-500 text-sm">No recent applications</p>
-                  )}
-                </div>
-              </div>
+          <div>
+            <h2 className="text-xl font-bold text-gray-900 mb-4">Recent Applications</h2>
+            <div className="bg-white rounded-2xl shadow p-4 space-y-3">
+              {recentActivity?.recentApplications && recentActivity.recentApplications.length > 0 ? (
+                recentActivity.recentApplications.map((application: RecentApplication) => (
+                  <div key={application.id} className="flex justify-between items-center py-2 border-b last:border-b-0">
+                    <div>
+                      <div className="font-medium text-gray-800">{application.projectTitle}</div>
+                      <div className="text-xs text-gray-400">{new Date(application.createdAt).toLocaleDateString()}</div>
+                    </div>
+                    <span className="text-xs px-2 py-1 rounded bg-gray-100 text-gray-600 capitalize">{application.status}</span>
+                  </div>
+                ))
+              ) : (
+                <div className="text-gray-400 text-sm">No recent applications</div>
+              )}
             </div>
           </div>
         </div>

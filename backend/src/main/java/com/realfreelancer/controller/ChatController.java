@@ -2,24 +2,18 @@ package com.realfreelancer.controller;
 
 import com.realfreelancer.model.Message;
 import com.realfreelancer.model.User;
-import com.realfreelancer.repository.MessageRepository;
-import com.realfreelancer.repository.UserRepository;
 import com.realfreelancer.service.ChatService;
 import com.realfreelancer.dto.MessageRequest;
+import com.realfreelancer.dto.ConversationSummary;
+import com.realfreelancer.dto.MessageDTO;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
-import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.messaging.handler.annotation.SendTo;
-import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Map;
@@ -30,14 +24,22 @@ import java.util.Optional;
 @CrossOrigin(origins = "http://localhost:3000")
 public class ChatController {
 
+    private static final Logger logger = LoggerFactory.getLogger(ChatController.class);
+
     @Autowired
     private ChatService chatService;
 
     @Autowired
-    private MessageRepository messageRepository;
+    private com.realfreelancer.repository.UserRepository userRepository;
 
-    @Autowired
-    private UserRepository userRepository;
+    // Helper to robustly find user by username or email
+    private Optional<User> findUserByUsernameOrEmail(String identifier) {
+        Optional<User> user = userRepository.findByUsername(identifier);
+        if (user.isEmpty()) {
+            user = userRepository.findByEmail(identifier);
+        }
+        return user;
+    }
 
     // Send a message
     @PostMapping("/send")
@@ -45,8 +47,12 @@ public class ChatController {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String username = authentication.getName();
-            User sender = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+            Optional<User> senderOpt = findUserByUsernameOrEmail(username);
+            if (senderOpt.isEmpty()) {
+                logger.error("User not found for identifier: {}", username);
+                return ResponseEntity.status(404).body("User not found");
+            }
+            User sender = senderOpt.get();
 
             Optional<User> recipientOpt = userRepository.findById(messageRequest.getRecipientId());
             if (!recipientOpt.isPresent()) {
@@ -61,10 +67,11 @@ public class ChatController {
             message.setReceiver(recipient);
             message.setType(Message.MessageType.TEXT);
 
-            Message savedMessage = chatService.sendMessage(message);
+            MessageDTO savedMessage = chatService.sendMessage(message);
             return ResponseEntity.ok(savedMessage);
 
         } catch (Exception e) {
+            logger.error("Error sending message", e);
             return ResponseEntity.badRequest().body("Error sending message: " + e.getMessage());
         }
     }
@@ -79,8 +86,12 @@ public class ChatController {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String username = authentication.getName();
-            User currentUser = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+            Optional<User> currentUserOpt = findUserByUsernameOrEmail(username);
+            if (currentUserOpt.isEmpty()) {
+                logger.error("User not found for identifier: {}", username);
+                return ResponseEntity.status(404).body("User not found");
+            }
+            User currentUser = currentUserOpt.get();
 
             Optional<User> otherUserOpt = userRepository.findById(userId);
             if (!otherUserOpt.isPresent()) {
@@ -88,15 +99,11 @@ public class ChatController {
             }
 
             User otherUser = otherUserOpt.get();
-            Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-            
-            Page<Message> messages = messageRepository.findConversationBetweenUsers(
-                currentUser, otherUser, pageable
-            );
-
+            List<MessageDTO> messages = chatService.getConversation(currentUser, otherUser, page, size);
             return ResponseEntity.ok(messages);
 
         } catch (Exception e) {
+            logger.error("Error fetching conversation", e);
             return ResponseEntity.badRequest().body("Error fetching conversation: " + e.getMessage());
         }
     }
@@ -110,15 +117,18 @@ public class ChatController {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String username = authentication.getName();
-            User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+            Optional<User> userOpt = findUserByUsernameOrEmail(username);
+            if (userOpt.isEmpty()) {
+                logger.error("User not found for identifier: {}", username);
+                return ResponseEntity.status(404).body("User not found");
+            }
+            User user = userOpt.get();
 
-            Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-            List<Object[]> conversations = messageRepository.findUserConversations(user, pageable);
-
+            List<ConversationSummary> conversations = chatService.getUserConversations(user, page, size);
             return ResponseEntity.ok(conversations);
 
         } catch (Exception e) {
+            logger.error("Error fetching conversations", e);
             return ResponseEntity.badRequest().body("Error fetching conversations: " + e.getMessage());
         }
     }
@@ -129,8 +139,12 @@ public class ChatController {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String username = authentication.getName();
-            User currentUser = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+            Optional<User> currentUserOpt = findUserByUsernameOrEmail(username);
+            if (currentUserOpt.isEmpty()) {
+                logger.error("User not found for identifier: {}", username);
+                return ResponseEntity.status(404).body("User not found");
+            }
+            User currentUser = currentUserOpt.get();
 
             Optional<User> senderOpt = userRepository.findById(senderId);
             if (!senderOpt.isPresent()) {
@@ -138,11 +152,11 @@ public class ChatController {
             }
 
             User sender = senderOpt.get();
-            int updatedCount = messageRepository.markMessagesAsRead(sender, currentUser);
-
-            return ResponseEntity.ok(Map.of("updatedCount", updatedCount));
+            chatService.markMessagesAsRead(sender, currentUser);
+            return ResponseEntity.ok(Map.of("updated", true));
 
         } catch (Exception e) {
+            logger.error("Error marking messages as read", e);
             return ResponseEntity.badRequest().body("Error marking messages as read: " + e.getMessage());
         }
     }
@@ -153,13 +167,18 @@ public class ChatController {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String username = authentication.getName();
-            User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+            Optional<User> userOpt = findUserByUsernameOrEmail(username);
+            if (userOpt.isEmpty()) {
+                logger.error("User not found for identifier: {}", username);
+                return ResponseEntity.status(404).body("User not found");
+            }
+            User user = userOpt.get();
 
-            Long unreadCount = messageRepository.countUnreadMessagesByReceiver(user);
+            Long unreadCount = chatService.getUnreadMessageCount(user);
             return ResponseEntity.ok(Map.of("unreadCount", unreadCount));
 
         } catch (Exception e) {
+            logger.error("Error fetching unread count", e);
             return ResponseEntity.badRequest().body("Error fetching unread count: " + e.getMessage());
         }
     }
@@ -170,38 +189,17 @@ public class ChatController {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String username = authentication.getName();
-
-            Optional<Message> messageOpt = messageRepository.findById(messageId);
-            if (!messageOpt.isPresent()) {
-                return ResponseEntity.notFound().build();
+            Optional<User> userOpt = findUserByUsernameOrEmail(username);
+            if (userOpt.isEmpty()) {
+                logger.error("User not found for identifier: {}", username);
+                return ResponseEntity.status(404).body("User not found");
             }
-
-            Message message = messageOpt.get();
-            if (!message.getSender().getUsername().equals(username)) {
-                return ResponseEntity.status(403).body("You can only delete your own messages");
-            }
-
-            messageRepository.delete(message);
+            User user = userOpt.get();
+            chatService.deleteMessage(messageId, user);
             return ResponseEntity.ok("Message deleted successfully");
-
         } catch (Exception e) {
+            logger.error("Error deleting message", e);
             return ResponseEntity.badRequest().body("Error deleting message: " + e.getMessage());
         }
-    }
-
-    // WebSocket message handlers
-    @MessageMapping("/chat.sendMessage")
-    @SendTo("/topic/public")
-    public Message sendWebSocketMessage(@Payload MessageRequest messageRequest) {
-        // This will be handled by WebSocket configuration
-        return null;
-    }
-
-    @MessageMapping("/chat.addUser")
-    @SendTo("/topic/public")
-    public Message addUser(@Payload MessageRequest messageRequest, SimpMessageHeaderAccessor headerAccessor) {
-        // Add username in web socket session
-        headerAccessor.getSessionAttributes().put("username", messageRequest.getSenderId());
-        return null;
     }
 } 

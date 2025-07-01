@@ -7,6 +7,7 @@ import com.realfreelancer.repository.ProjectRepository;
 import com.realfreelancer.repository.ApplicationRepository;
 import com.realfreelancer.repository.UserRepository;
 import com.realfreelancer.service.ProjectService;
+import com.realfreelancer.service.ChatService;
 import com.realfreelancer.dto.ProjectRequest;
 import com.realfreelancer.dto.ApplicationRequest;
 import com.realfreelancer.dto.ProjectDTO;
@@ -45,6 +46,9 @@ class ProjectController {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private ChatService chatService;
 
     // Get all projects with pagination and filtering
     @GetMapping
@@ -258,6 +262,9 @@ class ProjectController {
             // Increment application count
             project.incrementApplicationCount();
             projectRepository.save(project);
+
+            // Send system message to start conversation
+            chatService.sendSystemMessage(freelancer, project.getClient(), "Hi, I'm interested in your project: " + project.getTitle() + "!", project);
 
             return ResponseEntity.ok(savedApplication);
         } catch (Exception e) {
