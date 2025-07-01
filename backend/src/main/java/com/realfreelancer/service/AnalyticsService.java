@@ -4,6 +4,7 @@ import com.realfreelancer.repository.ProjectRepository;
 import com.realfreelancer.repository.UserRepository;
 import com.realfreelancer.repository.ApplicationRepository;
 import com.realfreelancer.repository.ReviewRepository;
+import com.realfreelancer.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -110,5 +111,25 @@ public class AnalyticsService {
         analytics.put("completionRate", 85.0);
         
         return analytics;
+    }
+
+    public Map<String, Object> getUserProfileStats(User user) {
+        Map<String, Object> stats = new HashMap<>();
+        // Projects as client
+        long totalProjects = projectRepository.findByClient(user, org.springframework.data.domain.PageRequest.of(0, 1)).getTotalElements();
+        Long completedProjects = projectRepository.countCompletedProjectsByClient(user);
+        // Applications as freelancer
+        long totalApplications = applicationRepository.findByFreelancer(user, org.springframework.data.domain.PageRequest.of(0, 1)).getTotalElements();
+        Long completedFreelanceProjects = projectRepository.countCompletedProjectsByFreelancer(user);
+        // Reviews
+        Double averageRating = reviewRepository.findAverageRatingByReviewedUser(user);
+        Long totalReviews = reviewRepository.countByReviewedUser(user);
+        stats.put("totalProjects", totalProjects);
+        stats.put("completedProjects", completedProjects != null ? completedProjects : 0);
+        stats.put("totalApplications", totalApplications);
+        stats.put("completedFreelanceProjects", completedFreelanceProjects != null ? completedFreelanceProjects : 0);
+        stats.put("averageRating", averageRating != null ? averageRating : 0.0);
+        stats.put("totalReviews", totalReviews != null ? totalReviews : 0);
+        return stats;
     }
 }

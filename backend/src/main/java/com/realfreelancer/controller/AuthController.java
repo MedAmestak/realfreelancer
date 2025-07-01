@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 import com.realfreelancer.dto.AuthUserDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.realfreelancer.service.AnalyticsService;
 
 import java.time.LocalDateTime;
 
@@ -39,6 +40,9 @@ public class AuthController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private AnalyticsService analyticsService;
 
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@Validated(AuthRequest.Registration.class) @RequestBody AuthRequest authRequest) {
@@ -104,7 +108,8 @@ public class AuthController {
             String email = authentication.getName();
             User user = userService.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-            return ResponseEntity.ok(new AuthUserDTO(user));
+            java.util.Map<String, Object> stats = analyticsService.getUserProfileStats(user);
+            return ResponseEntity.ok(new AuthUserDTO(user, stats));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Error fetching user profile: " + e.getMessage());
         }
@@ -119,5 +124,44 @@ public class AuthController {
             }
         }
         return ResponseEntity.ok(false);
+    }
+
+    @PutMapping("/profile")
+    public ResponseEntity<?> updateCurrentUser(@RequestBody java.util.Map<String, Object> updates) {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String email = authentication.getName();
+            User user = userService.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+            // Update allowed fields
+            if (updates.containsKey("username")) {
+                user.setUsername((String) updates.get("username"));
+            }
+            if (updates.containsKey("bio")) {
+                user.setBio((String) updates.get("bio"));
+            }
+            if (updates.containsKey("githubLink")) {
+                user.setGithubLink((String) updates.get("githubLink"));
+            }
+            if (updates.containsKey("skills")) {
+                Object skillsObj = updates.get("skills");
+                if (skillsObj instanceof java.util.List) {
+                    java.util.List<?> skillsList = (java.util.List<?>) skillsObj;
+                    java.util.Set<String> skillsSet = new java.util.HashSet<>();
+                    for (Object skill : skillsList) {
+                        if (skill instanceof String) {
+                            skillsSet.add((String) skill);
+                        }
+                    }
+                    user.setSkills(skillsSet);
+                }
+            }
+            userService.updateUser(user);
+            java.util.Map<String, Object> stats = analyticsService.getUserProfileStats(user);
+            return ResponseEntity.ok(new AuthUserDTO(user, stats));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error updating user profile: " + e.getMessage());
+        }
     }
 }

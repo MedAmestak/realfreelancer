@@ -21,6 +21,7 @@ interface AuthContextType {
   register: (userData: RegisterData) => Promise<{ success: boolean; error?: string }>;
   loading: boolean;
   getAuthToken: () => string | null;
+  setUser: React.Dispatch<React.SetStateAction<User | null>>;
 }
 
 interface RegisterData {
@@ -202,6 +203,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     register,
     loading,
     getAuthToken,
+    setUser,
   };
 
   return (

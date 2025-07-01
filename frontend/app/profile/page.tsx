@@ -34,7 +34,7 @@ interface FormData {
 }
 
 export default function ProfilePage() {
-  const { user, getAuthToken } = useAuth()
+  const { user, getAuthToken, setUser } = useAuth() // ⬅️ Added setUser here
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(false)
@@ -67,7 +67,7 @@ export default function ProfilePage() {
         setLoading(false);
         return;
       }
-      const response = await fetch('/api/profile', {
+      const response = await fetch('http://localhost:8080/api/auth/profile', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -118,7 +118,8 @@ export default function ProfilePage() {
         setLoading(false);
         return;
       }
-      const response = await fetch('/api/profile', {
+
+      const response = await fetch('http://localhost:8080/api/auth/profile', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -128,8 +129,16 @@ export default function ProfilePage() {
       });
 
       if (response.ok) {
-        await fetchProfile()
-        setEditing(false)
+        const updatedProfile = await response.json(); 
+
+        await fetchProfile();
+        setEditing(false);
+
+        // ⬇️ Update user in AuthContext so UserMenu reflects new username
+        setUser((prev: any) => ({
+          ...prev,
+          username: updatedProfile.username
+        }));
       }
     } catch (error) {
       console.error('Error updating profile: Network error')
@@ -207,7 +216,9 @@ export default function ProfilePage() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="text-center p-4 bg-gray-50 rounded-lg">
                 <Briefcase className="w-6 h-6 mx-auto text-blue-600 mb-2" />
-                <div className="text-2xl font-bold text-gray-900">{profile?.stats.totalProjects || 0}</div>
+                <div className="text-2xl font-bold text-gray-900">
+                  {profile?.stats?.totalProjects ?? 0}
+                </div>
                 <div className="text-sm text-gray-600">Projects</div>
               </div>
               <div className="text-center p-4 bg-gray-50 rounded-lg">

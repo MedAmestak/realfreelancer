@@ -12,6 +12,7 @@ public class AuthUserDTO {
     private Set<String> skills;
     private Integer reputationPoints;
     private boolean isVerified;
+    private java.util.Map<String, Object> stats;
 
     public AuthUserDTO(User user) {
         this.id = user.getId();
@@ -22,6 +23,11 @@ public class AuthUserDTO {
         this.skills = user.getSkills();
         this.reputationPoints = user.getReputationPoints();
         this.isVerified = user.getIsVerified();
+    }
+
+    public AuthUserDTO(User user, java.util.Map<String, Object> stats) {
+        this(user);
+        this.stats = stats;
     }
 
     // Getters and setters
@@ -41,4 +47,6 @@ public class AuthUserDTO {
     public void setReputationPoints(Integer reputationPoints) { this.reputationPoints = reputationPoints; }
     public boolean isVerified() { return isVerified; }
     public void setVerified(boolean isVerified) { this.isVerified = isVerified; }
+    public java.util.Map<String, Object> getStats() { return stats; }
+    public void setStats(java.util.Map<String, Object> stats) { this.stats = stats; }
 } 

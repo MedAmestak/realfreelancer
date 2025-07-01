@@ -3,7 +3,7 @@ import { Fragment } from 'react';
 import { ChevronDownIcon, UserCircleIcon } from '@heroicons/react/20/solid';
 import Link from 'next/link';
 import { useAuth } from '../src/contexts/AuthContext'; // Adjust path as needed
-import { User, LogOut, Settings, ScatterChart, LayoutDashboardIcon, BookMarkedIcon, BookMarked, LucideBookMarked, BookCheckIcon, LucidePodcast, PoundSterling, BookmarkPlus } from 'lucide-react';
+import { User, LogOut, Settings, ScatterChart, LayoutDashboardIcon, BookMarkedIcon, BookMarked, LucideBookMarked, BookCheckIcon, LucidePodcast, PoundSterling, BookmarkPlus, PanelTopCloseIcon, PanelTop } from 'lucide-react';
 
 export default function UserMenu() {
   const { user, logout } = useAuth();
@@ -35,8 +35,21 @@ export default function UserMenu() {
           <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
             <div className="px-1 py-1 ">
                 <div className="px-4 py-2 border-b border-gray-200">
-                    <p className="text-sm text-gray-900">Welcome {user.username}</p>
+                    <p className="text-sm text-gray-900">{user.username}</p>
                 </div>
+                <Menu.Item>
+                {({ active }: { active: boolean }) => (
+                  <Link
+                    href="/"
+                    className={`${
+                      active ? 'bg-primary-500 text-white' : 'text-gray-900'
+                    } group flex w-full items-center rounded-md px-2 py-2 text-sm`}
+                  >
+                    <PanelTop className="mr-2 h-5 w-5" aria-hidden="true" />
+                    Home
+                  </Link>
+                )}                 
+                </Menu.Item>
                 <Menu.Item>
                 {({ active }: { active: boolean }) => (
                   <Link
