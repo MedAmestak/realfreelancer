@@ -22,6 +22,7 @@ interface Project {
     id: number;
     username: string;
     email: string;
+    isVerified: boolean;
   };
   freelancer?: {
     id: number;

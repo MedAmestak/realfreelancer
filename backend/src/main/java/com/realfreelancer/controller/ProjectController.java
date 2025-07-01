@@ -79,7 +79,8 @@ class ProjectController {
                     dto.setClient(new ClientDTO(
                         project.getClient().getId(),
                         project.getClient().getUsername(),
-                        project.getClient().getEmail()
+                        project.getClient().getEmail(),
+                        project.getClient().getIsVerified()
                     ));
                 }
                 return dto;
@@ -114,7 +115,8 @@ class ProjectController {
                     dto.setClient(new ClientDTO(
                         p.getClient().getId(),
                         p.getClient().getUsername(),
-                        p.getClient().getEmail()
+                        p.getClient().getEmail(),
+                        p.getClient().getIsVerified()
                     ));
                 }
                 return ResponseEntity.ok(dto);

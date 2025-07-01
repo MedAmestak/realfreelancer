@@ -1,4 +1,4 @@
-import { Menu, Transition } from '@headlessui/react';
+import { Menu, MenuItemProps, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
 import { ChevronDownIcon, UserCircleIcon } from '@heroicons/react/20/solid';
 import Link from 'next/link';
@@ -14,7 +14,7 @@ export default function UserMenu() {
 
   return (
     <div className="relative inline-block text-left">
-      <Menu as="div">
+      <Menu as={'div' as const}>
         <div>
           <Menu.Button className="inline-flex w-full justify-center rounded-full text-sm font-medium text-white hover:bg-opacity-30 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75">
             <UserCircleIcon
@@ -38,7 +38,7 @@ export default function UserMenu() {
                     <p className="text-sm text-gray-900">Welcome {user.username}</p>
                 </div>
                 <Menu.Item>
-                {({ active }) => (
+                {({ active }: { active: boolean }) => (
                   <Link
                     href="/dashboard"
                     className={`${
@@ -51,7 +51,7 @@ export default function UserMenu() {
                 )}
               </Menu.Item>
               <Menu.Item>
-                {({ active }) => (
+                {({ active }: { active: boolean }) => (
                   <Link
                     href="/post"
                     className={`${
@@ -64,7 +64,7 @@ export default function UserMenu() {
                 )}
               </Menu.Item>
               <Menu.Item>
-                {({ active }) => (
+                {({ active }: { active: boolean }) => (
                   <Link
                     href="/profile"
                     className={`${
@@ -77,7 +77,7 @@ export default function UserMenu() {
                 )}
               </Menu.Item>
               <Menu.Item>
-                {({ active }) => (
+                {({ active }: { active: boolean }) => (
                   <button
                     className={`${
                       active ? 'bg-primary-500 text-white' : 'text-gray-900'
@@ -91,7 +91,7 @@ export default function UserMenu() {
             </div>
             <div className="px-1 py-1">
               <Menu.Item>
-                {({ active }) => (
+                {({ active }: { active: boolean }) => (
                   <button
                     onClick={logout}
                     className={`${

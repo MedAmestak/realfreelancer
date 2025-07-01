@@ -8,33 +8,7 @@ import ProjectCard from '../../components/ProjectCard'
 import FilterBar from '../../components/FilterBar'
 import { useAuth } from '../../src/contexts/AuthContext'
 import Link from 'next/link'
-
-interface Project {
-  id: number;
-  title: string;
-  description: string;
-  requiredSkills: string[];
-  budget: number;
-  deadline: string;
-  status: 'OPEN' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
-  type: 'FREE' | 'PAID';
-  client: {
-    id: number;
-    username: string;
-    email: string;
-  };
-  freelancer?: {
-    id: number;
-    username: string;
-    email: string;
-  };
-  attachmentUrl?: string;
-  isFeatured: boolean;
-  viewCount: number;
-  applicationCount: number;
-  createdAt: string;
-  updatedAt: string;
-}
+import { Project } from '../../types/project' // Import the Project type
 
 export default function ProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([])
@@ -43,28 +17,28 @@ export default function ProjectsPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedSkills, setSelectedSkills] = useState<string[]>([])
   const [error, setError] = useState('')
-  const { user, getAuthToken } = useAuth();
+  const { user, getAuthToken } = useAuth()
 
   const fetchProjects = async () => {
     try {
-      setError('');
-      const headers: Record<string, string> = {};
-      const token = getAuthToken && getAuthToken();
-      if (token) headers['Authorization'] = `Bearer ${token}`;
-      const response = await fetch('http://localhost:8080/api/projects', { headers });
+      setError('')
+      const headers: Record<string, string> = {}
+      const token = getAuthToken && getAuthToken()
+      if (token) headers['Authorization'] = `Bearer ${token}`
+      const response = await fetch('http://localhost:8080/api/projects', { headers })
       if (response.ok) {
-        const data = await response.json();
+        const data = await response.json()
         setProjects(data.content || data)
       } else if (response.status === 401) {
-        setError('You must be logged in to view projects.');
-        setProjects([]);
+        setError('You must be logged in to view projects.')
+        setProjects([])
       } else {
-        setError('Failed to fetch projects: Server error');
-        setProjects([]);
+        setError('Failed to fetch projects: Server error')
+        setProjects([])
       }
     } catch (error) {
-      setError('Error fetching projects: Network error');
-      setProjects([]);
+      setError('Error fetching projects: Network error')
+      setProjects([])
     } finally {
       setLoading(false)
     }
@@ -84,9 +58,7 @@ export default function ProjectsPage() {
     // Filter by skills
     if (selectedSkills.length > 0) {
       filtered = filtered.filter(project =>
-        selectedSkills.some(skill =>
-          project.requiredSkills.includes(skill)
-        )
+        selectedSkills.some(skill => project.requiredSkills.includes(skill))
       )
     }
 
@@ -141,13 +113,12 @@ export default function ProjectsPage() {
 
           {/* Projects Grid */}
           <div className="lg:w-3/4">
-            {/* Debug: Pure HTML link test */}
             {error && (
               <div className="bg-red-100 text-red-700 px-4 py-3 rounded-lg mb-6">{error}</div>
             )}
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold text-gray-900">
-                Available Projects ({filteredProjects.length})
+                Available devenus ({filteredProjects.length})
               </h2>
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <Filter className="w-4 h-4" />
@@ -159,7 +130,7 @@ export default function ProjectsPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {[...Array(6)].map((_, i) => (
                   <div key={`skeleton-${i}`} className="bg-white rounded-lg shadow-md p-6 animate-pulse">
-                    <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
+                    <div className="h Babel h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
                     <div className="h-3 bg-gray-200 rounded w-full mb-2"></div>
                     <div className="h-3 bg-gray-200 rounded w-full mb-4"></div>
                     <div className="flex gap-2">
@@ -198,4 +169,4 @@ export default function ProjectsPage() {
       </div>
     </div>
   )
-} 
+}

@@ -4,11 +4,13 @@ public class ClientDTO {
     private Long id;
     private String username;
     private String email;
+    private boolean isVerified;
 
-    public ClientDTO(Long id, String username, String email) {
+    public ClientDTO(Long id, String username, String email, boolean isVerified) {
         this.id = id;
         this.username = username;
         this.email = email;
+        this.isVerified = isVerified;
     }
 
     // Getters and Setters
@@ -34,5 +36,13 @@ public class ClientDTO {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public boolean isVerified() {
+        return isVerified;
+    }
+
+    public void setVerified(boolean isVerified) {
+        this.isVerified = isVerified;
     }
 } 
