@@ -30,8 +30,12 @@ const MessageInput: React.FC<MessageInputProps> = ({ conversationId, onMessageSe
       if (!res.ok) throw new Error('Failed to send message');
       setMessage('');
       if (onMessageSent) onMessageSent();
-    } catch (e: any) {
-      setError(e.message);
+    } catch (e: unknown) {
+      if (e instanceof Error) {
+        setError(e.message);
+      } else {
+        setError('An unknown error occurred');
+      }
     } finally {
       setLoading(false);
     }

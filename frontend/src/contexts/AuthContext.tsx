@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { jwtDecode } from 'jwt-decode';
 
-interface User {
+export type User = {
   id: number;
   username: string;
   email: string;
@@ -11,7 +11,7 @@ interface User {
   skills: string[];
   reputationPoints: number;
   isVerified: boolean;
-}
+};
 
 interface AuthContextType {
   user: User | null;
