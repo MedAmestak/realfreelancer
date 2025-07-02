@@ -30,9 +30,6 @@ export default function ConversationPage() {
         {/* Main Chat Area */}
         <main className="flex-1 flex flex-col">
           <ChatWindow conversationId={selectedConversation} />
-          <div className="border-t p-4 bg-gray-50">
-            <MessageInput conversationId={selectedConversation} />
-          </div>
         </main>
       </div>
     </div>

@@ -17,6 +17,8 @@ public class MessageRequest {
     
     private String messageType = "TEXT";
     
+    private Long projectId;
+    
     // Constructors
     public MessageRequest() {}
     
@@ -56,5 +58,13 @@ public class MessageRequest {
     
     public void setMessageType(String messageType) {
         this.messageType = messageType;
+    }
+    
+    public Long getProjectId() {
+        return projectId;
+    }
+    
+    public void setProjectId(Long projectId) {
+        this.projectId = projectId;
     }
 } 

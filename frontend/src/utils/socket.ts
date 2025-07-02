@@ -8,9 +8,10 @@ export interface SocketOptions {
   onMessage: (msg: IMessage) => void;
   user: string;
   token: string;
+  onTyping?: (msg: IMessage) => void;
 }
 
-export function connectSocket({ onMessage, user, token }: SocketOptions) {
+export function connectSocket({ onMessage, user, token, onTyping }: SocketOptions) {
   const client = new Client({
     webSocketFactory: () => new SockJS(SOCKET_URL),
     connectHeaders: {
@@ -20,14 +21,19 @@ export function connectSocket({ onMessage, user, token }: SocketOptions) {
     reconnectDelay: 5000,
   });
 
-  let subscription: StompSubscription | null = null;
+  let messageSubscription: StompSubscription | null = null;
+  let typingSubscription: StompSubscription | null = null;
 
   client.onConnect = () => {
-    subscription = client.subscribe(`/user/${user}/queue/messages`, onMessage);
+    messageSubscription = client.subscribe(`/user/${user}/queue/messages`, onMessage);
+    if (onTyping) {
+      typingSubscription = client.subscribe(`/user/${user}/queue/typing`, onTyping);
+    }
   };
 
   client.onDisconnect = () => {
-    if (subscription) subscription.unsubscribe();
+    if (messageSubscription) messageSubscription.unsubscribe();
+    if (typingSubscription) typingSubscription.unsubscribe();
   };
 
   client.activate();
@@ -35,6 +41,7 @@ export function connectSocket({ onMessage, user, token }: SocketOptions) {
   return {
     disconnect: () => client.deactivate(),
     send: (destination: string, body: string) => client.publish({ destination, body }),
+    sendTyping: (typingPayload: object) => client.publish({ destination: '/app/typing', body: JSON.stringify(typingPayload) }),
     client,
   };
 } 

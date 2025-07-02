@@ -112,12 +112,31 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
                           Login to Apply
                       </Link>
                   )}
-                  {user && project.client && user.username !== project.client.username && (
-                      <Link href={`/chat/${project.client.username}?projectId=${project.id}`}
-                          className="mt-6 w-full flex items-center justify-center bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold">
-                          <Send className="w-5 h-5 mr-2" />
-                          Apply Now
-                      </Link>
+                  {user && project?.client && user.username !== project.client.username && (
+                    <button
+                      onClick={async () => {
+                        if (!project?.client?.id) return;
+                        const token = getAuthToken();
+                        if (!token) return;
+                        await fetch('http://localhost:8080/api/chat/send', {
+                          method: 'POST',
+                          headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json',
+                          },
+                          body: JSON.stringify({
+                            recipientId: project.client.id,
+                            content: `Hi, I'm interested in your project: ${project.title}`,
+                            projectId: project.id,
+                          }),
+                        });
+                        window.location.href = `/chat/${project.client.id}`;
+                      }}
+                      className="mt-6 w-full flex items-center justify-center bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold"
+                    >
+                      <Send className="w-5 h-5 mr-2" />
+                      Apply Now
+                    </button>
                   )}
               </div>
 

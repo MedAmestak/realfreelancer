@@ -14,6 +14,12 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.realfreelancer.repository.ProjectRepository;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.stereotype.Controller;
+import org.springframework.messaging.handler.annotation.Header;
 
 import java.util.List;
 import java.util.Map;
@@ -22,6 +28,7 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/chat")
 @CrossOrigin(origins = "http://localhost:3000")
+@Controller
 public class ChatController {
 
     private static final Logger logger = LoggerFactory.getLogger(ChatController.class);
@@ -31,6 +38,12 @@ public class ChatController {
 
     @Autowired
     private com.realfreelancer.repository.UserRepository userRepository;
+
+    @Autowired
+    private ProjectRepository projectRepository;
+
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
 
     // Helper to robustly find user by username or email
     private Optional<User> findUserByUsernameOrEmail(String identifier) {
@@ -58,14 +71,23 @@ public class ChatController {
             if (!recipientOpt.isPresent()) {
                 return ResponseEntity.notFound().build();
             }
-
             User recipient = recipientOpt.get();
+
+            if (messageRequest.getProjectId() == null) {
+                return ResponseEntity.badRequest().body("Project ID is required for sending a message");
+            }
+            Optional<com.realfreelancer.model.Project> projectOpt = projectRepository.findById(messageRequest.getProjectId());
+            if (!projectOpt.isPresent()) {
+                return ResponseEntity.badRequest().body("Invalid project ID");
+            }
+            com.realfreelancer.model.Project project = projectOpt.get();
 
             Message message = new Message();
             message.setContent(messageRequest.getContent());
             message.setSender(sender);
             message.setReceiver(recipient);
             message.setType(Message.MessageType.TEXT);
+            message.setProject(project);
 
             MessageDTO savedMessage = chatService.sendMessage(message);
             return ResponseEntity.ok(savedMessage);
@@ -202,4 +224,35 @@ public class ChatController {
             return ResponseEntity.badRequest().body("Error deleting message: " + e.getMessage());
         }
     }
+
+    @MessageMapping("/typing")
+    public void handleTyping(@Payload TypingIndicatorDTO typingIndicator, @Header("simpUser") Authentication auth) {
+        System.out.println("Received typing event: " + typingIndicator.getSenderUsername() + " -> " + typingIndicator.getReceiverUsername() + " typing: " + typingIndicator.isTyping());
+        System.out.println("WebSocket principal: " + auth.getName());
+        messagingTemplate.convertAndSendToUser(
+            typingIndicator.getReceiverUsername(),
+            "/queue/typing",
+            typingIndicator
+        );
+    }
+}
+
+// DTO for typing indicator
+class TypingIndicatorDTO {
+    private Long senderId;
+    private String senderUsername;
+    private Long receiverId;
+    private String receiverUsername;
+    private boolean typing;
+    // Getters and setters
+    public Long getSenderId() { return senderId; }
+    public void setSenderId(Long senderId) { this.senderId = senderId; }
+    public String getSenderUsername() { return senderUsername; }
+    public void setSenderUsername(String senderUsername) { this.senderUsername = senderUsername; }
+    public Long getReceiverId() { return receiverId; }
+    public void setReceiverId(Long receiverId) { this.receiverId = receiverId; }
+    public String getReceiverUsername() { return receiverUsername; }
+    public void setReceiverUsername(String receiverUsername) { this.receiverUsername = receiverUsername; }
+    public boolean isTyping() { return typing; }
+    public void setTyping(boolean typing) { this.typing = typing; }
 } 
