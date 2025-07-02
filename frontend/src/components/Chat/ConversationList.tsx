@@ -14,6 +14,14 @@ interface Conversation {
   unreadCount: number;
 }
 
+interface ConversationApi {
+  userId: number;
+  username: string;
+  avatarUrl?: string;
+  lastMessageTime: string;
+  unreadCount: number;
+}
+
 const ConversationList: React.FC<ConversationListProps> = ({ selectedConversation, onSelect }) => {
   const { getAuthToken } = useAuth();
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -30,16 +38,20 @@ const ConversationList: React.FC<ConversationListProps> = ({ selectedConversatio
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (!res.ok) throw new Error('Failed to fetch conversations');
-        const data = await res.json();
-        setConversations(data.map((item: any) => ({
+        const data: ConversationApi[] = await res.json();
+        setConversations(data.map((item) => ({
           id: item.userId,
           username: item.username,
           avatarUrl: item.avatarUrl,
           lastMessageTime: item.lastMessageTime,
           unreadCount: item.unreadCount,
         })));
-      } catch (e: any) {
-        setError(e.message);
+      } catch (e: unknown) {
+        if (e instanceof Error) {
+          setError(e.message);
+        } else {
+          setError('An unknown error occurred');
+        }
       } finally {
         setLoading(false);
       }

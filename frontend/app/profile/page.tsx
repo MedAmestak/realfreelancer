@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import { User, Edit, Save, X, Star, Award, Briefcase, MessageSquare } from 'lucide-react'
 import Header from '../../components/Header'
 import { useAuth } from '../../src/contexts/AuthContext'
+import { User as AuthUser } from '../../src/contexts/AuthContext'
 
 interface Profile {
   id: number;
@@ -135,10 +136,9 @@ export default function ProfilePage() {
         setEditing(false);
 
         // ⬇️ Update user in AuthContext so UserMenu reflects new username
-        setUser((prev: any) => ({
-          ...prev,
-          username: updatedProfile.username
-        }));
+        setUser((prev: AuthUser | null) => (
+          prev ? { ...prev, username: updatedProfile.username } : prev
+        ));
       }
     } catch (error) {
       console.error('Error updating profile: Network error')
