@@ -53,7 +53,7 @@ const fetchMessages = useCallback(async () => {
         headers: { 'Authorization': `Bearer ${token}` }
         });
         if (!res.ok) throw new Error('Failed to fetch messages');
-        let data: Message[] | { content: Message[] } = await res.json();
+        const data: Message[] | { content: Message[] } = await res.json();
         let msgs = Array.isArray(data) ? data : data.content || [];
         msgs = msgs.slice().sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
         setMessages(msgs);
@@ -63,10 +63,10 @@ const fetchMessages = useCallback(async () => {
         setProjectId(null);
         }
         if (msgs.length > 0 && user) {
-          const firstMsg = msgs[0];
+        const firstMsg = msgs[0];
           // Use receiverUsername or senderUsername as the principal for typing events
-          const otherPrincipal = firstMsg.senderId === user.id ? firstMsg.receiverUsername : firstMsg.senderUsername;
-          setOtherUsername(otherPrincipal);
+        const otherPrincipal = firstMsg.senderId === user.id ? firstMsg.receiverUsername : firstMsg.senderUsername;
+        setOtherUsername(otherPrincipal);
         }
     } catch (e: unknown) {
         if (e instanceof Error) {
@@ -121,7 +121,9 @@ useEffect(() => {
         ) {
           setIsOtherTyping(false);
         }
-      } catch {}
+      } catch (error){
+        //console.error('Error processing typing', error);
+      }
     },
     });
     return () => {

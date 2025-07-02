@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import { useParams } from 'next/navigation';
 import ConversationList from '../../../src/components/Chat/ConversationList';
 import ChatWindow from '../../../src/components/Chat/ChatWindow';
-import MessageInput from '../../../src/components/Chat/MessageInput';
 import Header from '../../../components/Header';
 
 export default function ConversationPage() {
