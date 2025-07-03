@@ -101,6 +101,7 @@ public class ChatService {
 
     // Helper to map Message to MessageDTO
     private MessageDTO toDTO(Message message) {
+        Long projectId = (message.getProject() != null) ? message.getProject().getId() : null;
         return new MessageDTO(
             message.getId(),
             message.getContent(),
@@ -111,7 +112,8 @@ public class ChatService {
             message.getIsRead(),
             message.getAttachmentUrl(),
             message.getType().name(),
-            message.getCreatedAt()
+            message.getCreatedAt(),
+            projectId
         );
     }
 } 

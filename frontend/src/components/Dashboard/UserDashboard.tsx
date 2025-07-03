@@ -286,7 +286,7 @@ const UserDashboard: React.FC = () => {
     </button>
 
     <button
-      onClick={() => (window.location.href = '/chat')}
+      onClick={() => (window.location.href = '/chat/conversation')}
       className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-blue px-6 py-3 rounded-xl font-semibold shadow transition"
     >
       <MessageSquare className="w-5 h-5" /> View Messages

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useRouter } from 'next/navigation';
 
 interface ConversationListProps {
   selectedConversation: number | null;
@@ -24,6 +25,7 @@ interface ConversationApi {
 
 const ConversationList: React.FC<ConversationListProps> = ({ selectedConversation, onSelect }) => {
   const { getAuthToken } = useAuth();
+  const router = useRouter();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -59,6 +61,11 @@ const ConversationList: React.FC<ConversationListProps> = ({ selectedConversatio
     fetchConversations();
   }, [getAuthToken]);
 
+  const handleSelect = (id: number) => {
+    onSelect(id);
+    router.push(`/chat/${id}`);
+  };
+
   if (loading) return <div className="text-center text-gray-400 py-8">Loading...</div>;
   if (error) return <div className="text-center text-red-500 py-8">{error}</div>;
   if (conversations.length === 0) return <div className="text-center text-gray-400 py-8">No conversations yet.</div>;
@@ -69,7 +76,7 @@ const ConversationList: React.FC<ConversationListProps> = ({ selectedConversatio
         <li
           key={conv.id}
           className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition border hover:bg-gray-100 ${selectedConversation === conv.id ? 'bg-blue-50 border-blue-400' : 'bg-white border-transparent'}`}
-          onClick={() => onSelect(conv.id)}
+          onClick={() => handleSelect(conv.id)}
         >
           <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-lg font-bold text-gray-500">
             {conv.avatarUrl ? (

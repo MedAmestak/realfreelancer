@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import { useParams } from 'next/navigation';
 import ConversationList from '../../../src/components/Chat/ConversationList';
 import ChatWindow from '../../../src/components/Chat/ChatWindow';
-import MessageInput from '../../../src/components/Chat/MessageInput';
 import Header from '../../../components/Header';
 
 export default function ConversationPage() {
@@ -30,9 +29,6 @@ export default function ConversationPage() {
         {/* Main Chat Area */}
         <main className="flex-1 flex flex-col">
           <ChatWindow conversationId={selectedConversation} />
-          <div className="border-t p-4 bg-gray-50">
-            <MessageInput conversationId={selectedConversation} />
-          </div>
         </main>
       </div>
     </div>
