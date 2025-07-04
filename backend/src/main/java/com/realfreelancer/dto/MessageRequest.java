@@ -6,7 +6,7 @@ import jakarta.validation.constraints.Size;
 
 public class MessageRequest {
     
-    @NotNull(message = "Recipient ID is required")
+    //@NotNull(message = "Recipient ID is required")
     private Long recipientId;
     
     @NotBlank(message = "Message content is required")
@@ -19,6 +19,8 @@ public class MessageRequest {
     
     private Long projectId;
     
+    private Long conversationId;
+    
     // Constructors
     public MessageRequest() {}
     
@@ -26,7 +28,7 @@ public class MessageRequest {
         this.recipientId = recipientId;
         this.content = content;
     }
-    
+
     // Getters and Setters
     public Long getRecipientId() {
         return recipientId;
@@ -66,5 +68,13 @@ public class MessageRequest {
     
     public void setProjectId(Long projectId) {
         this.projectId = projectId;
+    }
+    
+    public Long getConversationId() {
+        return conversationId;
+    }
+    
+    public void setConversationId(Long conversationId) {
+        this.conversationId = conversationId;
     }
 } 

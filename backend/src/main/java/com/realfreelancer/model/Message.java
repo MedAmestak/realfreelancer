@@ -21,8 +21,10 @@ public class Message {
     private String content;
     
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "project_id", nullable = false)
-    private Project project;
+    @JoinColumn(name = "conversation_id", nullable = false)
+    @com.fasterxml.jackson.annotation.JsonBackReference
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    private Conversation conversation;
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sender_id", nullable = false)
@@ -54,9 +56,9 @@ public class Message {
     // Constructors
     public Message() {}
     
-    public Message(String content, Project project, User sender, User receiver) {
+    public Message(String content, Conversation conversation, User sender, User receiver) {
         this.content = content;
-        this.project = project;
+        this.conversation = conversation;
         this.sender = sender;
         this.receiver = receiver;
     }
@@ -78,12 +80,12 @@ public class Message {
         this.content = content;
     }
     
-    public Project getProject() {
-        return project;
+    public Conversation getConversation() {
+        return conversation;
     }
     
-    public void setProject(Project project) {
-        this.project = project;
+    public void setConversation(Conversation conversation) {
+        this.conversation = conversation;
     }
     
     public User getSender() {

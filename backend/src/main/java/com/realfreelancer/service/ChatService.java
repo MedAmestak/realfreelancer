@@ -14,6 +14,11 @@ import java.util.stream.Collectors;
 import com.realfreelancer.dto.ConversationSummary;
 import com.realfreelancer.dto.MessageDTO;
 import com.realfreelancer.model.Project;
+import com.realfreelancer.model.Conversation;
+import com.realfreelancer.model.ConversationParticipant;
+import com.realfreelancer.repository.ConversationRepository;
+import com.realfreelancer.repository.ConversationParticipantRepository;
+import com.realfreelancer.service.NotificationService;
 
 @Service
 public class ChatService {
@@ -26,6 +31,15 @@ public class ChatService {
 
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
+
+    @Autowired
+    private ConversationRepository conversationRepository;
+
+    @Autowired
+    private ConversationParticipantRepository conversationParticipantRepository;
+
+    @Autowired
+    private NotificationService notificationService;
 
     public MessageDTO sendMessage(Message message) {
         // Set timestamp
@@ -42,6 +56,8 @@ public class ChatService {
             "/queue/messages",
             toDTO(savedMessage)
         );
+        // Create notification for new message
+        notificationService.createNewMessageNotification(message.getReceiver(), message.getSender().getUsername());
         
         return toDTO(savedMessage);
     }
@@ -67,6 +83,7 @@ public class ChatService {
             .skip((long) page * size)
             .limit(size)
             .map(obj -> new ConversationSummary(
+                null, // conversationId not available in this legacy method
                 ((Number)obj[0]).longValue(), // userId
                 (String)obj[1], // username
                 (String)obj[2], // avatarUrl
@@ -87,7 +104,7 @@ public class ChatService {
         messageRepository.delete(message);
     }
 
-    public void sendSystemMessage(User sender, User receiver, String content, Project project) {
+    public void sendSystemMessage(User sender, User receiver, String content, Conversation conversation) {
         Message message = new Message();
         message.setSender(sender);
         message.setReceiver(receiver);
@@ -95,13 +112,27 @@ public class ChatService {
         message.setType(Message.MessageType.SYSTEM);
         message.setIsRead(false);
         message.setCreatedAt(LocalDateTime.now());
-        message.setProject(project);
+        message.setConversation(conversation);
         messageRepository.save(message);
+    }
+
+    public Conversation findOrCreatePrivateConversation(User user1, User user2) {
+        // Try to find existing PRIVATE conversation with exactly these two users
+        List<Conversation> existing = conversationRepository.findPrivateConversationBetweenUsers(user1.getId(), user2.getId());
+        if (!existing.isEmpty()) {
+            return existing.get(0);
+        }
+        // Create new conversation
+        Conversation conversation = new Conversation(Conversation.ConversationType.PRIVATE);
+        conversation = conversationRepository.save(conversation);
+        conversationParticipantRepository.save(new ConversationParticipant(conversation, user1));
+        conversationParticipantRepository.save(new ConversationParticipant(conversation, user2));
+        return conversation;
     }
 
     // Helper to map Message to MessageDTO
     private MessageDTO toDTO(Message message) {
-        Long projectId = (message.getProject() != null) ? message.getProject().getId() : null;
+        Long conversationId = (message.getConversation() != null) ? message.getConversation().getId() : null;
         return new MessageDTO(
             message.getId(),
             message.getContent(),
@@ -113,7 +144,81 @@ public class ChatService {
             message.getAttachmentUrl(),
             message.getType().name(),
             message.getCreatedAt(),
-            projectId
+            conversationId
         );
+    }
+
+    // Find conversation by ID
+    public java.util.Optional<Conversation> findConversationById(Long conversationId) {
+        return conversationRepository.findById(conversationId);
+    }
+
+    // Find the other participant in a PRIVATE conversation
+    public User findOtherParticipant(Conversation conversation, User sender) {
+        return conversation.getParticipants().stream()
+            .map(com.realfreelancer.model.ConversationParticipant::getUser)
+            .filter(u -> !u.getId().equals(sender.getId()))
+            .findFirst().orElse(null);
+    }
+
+    // Check if a user is a participant in a conversation
+    public boolean isParticipant(Conversation conversation, User user) {
+        return conversation.getParticipants().stream()
+            .anyMatch(p -> p.getUser().getId().equals(user.getId()));
+    }
+
+    // Get messages by conversation
+    public List<MessageDTO> getMessagesByConversation(Conversation conversation, int page, int size) {
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size, org.springframework.data.domain.Sort.by("createdAt").descending());
+        return messageRepository.findAllByConversation(conversation, pageable)
+            .getContent().stream().map(this::toDTO).collect(java.util.stream.Collectors.toList());
+    }
+
+    // Mark all messages as read in a conversation for a user
+    public void markMessagesAsReadByConversation(Conversation conversation, User user) {
+        List<Message> unread = messageRepository.findAllByConversationAndReceiverAndIsReadFalse(conversation, user);
+        for (Message m : unread) {
+            m.setIsRead(true);
+        }
+        messageRepository.saveAll(unread);
+    }
+
+    // Get user's conversations with conversationId as key
+    public List<ConversationSummary> getUserConversationsWithId(User user, int page, int size) {
+        List<ConversationParticipant> participants = conversationParticipantRepository.findByUser(user);
+        return participants.stream()
+            .map(cp -> {
+                Conversation c = cp.getConversation();
+                // Find the other participant
+                User other = c.getParticipants().stream()
+                    .map(com.realfreelancer.model.ConversationParticipant::getUser)
+                    .filter(u -> !u.getId().equals(user.getId()))
+                    .findFirst().orElse(null);
+                String username = (other != null) ? other.getUsername() : "Unknown";
+                String avatarUrl = (other != null) ? other.getAvatarUrl() : null;
+                java.time.LocalDateTime lastMessageTime = c.getMessages().stream()
+                    .map(Message::getCreatedAt)
+                    .max(java.time.LocalDateTime::compareTo).orElse(null);
+                long unreadCount = c.getMessages().stream()
+                    .filter(m -> m.getReceiver().getId().equals(user.getId()) && !Boolean.TRUE.equals(m.getIsRead()))
+                    .count();
+                return new ConversationSummary(
+                    c.getId(), // conversationId
+                    (other != null) ? other.getId() : null, // userId
+                    username,
+                    avatarUrl,
+                    lastMessageTime,
+                    unreadCount
+                );
+            })
+            .sorted((a, b) -> {
+                if (a.getLastMessageTime() == null && b.getLastMessageTime() == null) return 0;
+                if (a.getLastMessageTime() == null) return 1;
+                if (b.getLastMessageTime() == null) return -1;
+                return b.getLastMessageTime().compareTo(a.getLastMessageTime());
+            })
+            .skip((long) page * size)
+            .limit(size)
+            .collect(java.util.stream.Collectors.toList());
     }
 } 

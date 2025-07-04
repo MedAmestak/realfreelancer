@@ -6,6 +6,7 @@ import MessageInput from './MessageInput';
 
 interface ChatWindowProps {
 conversationId: number | null;
+onMessagesRead?: () => void;
 }
 
 interface Message {
@@ -31,7 +32,7 @@ type SocketConnection = {
   client: Client;
 };
 
-const ChatWindow: React.FC<ChatWindowProps> = ({ conversationId }) => {
+const ChatWindow: React.FC<ChatWindowProps> = ({ conversationId, onMessagesRead }) => {
 const { getAuthToken, user } = useAuth();
 const [messages, setMessages] = useState<Message[]>([]);
 const [loading, setLoading] = useState(false);
@@ -42,6 +43,10 @@ const [projectId, setProjectId] = useState<number | null>(null);
 const [isOtherTyping, setIsOtherTyping] = useState(false);
 const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 const [otherUsername, setOtherUsername] = useState<string | null>(null);
+const [windowFocused, setWindowFocused] = useState(true);
+const audioRef = useRef<HTMLAudioElement | null>(null);
+const markAsReadCalledRef = useRef<{ [key: string]: boolean }>({});
+const [otherUserId, setOtherUserId] = useState<number | null>(null);
 
 const fetchMessages = useCallback(async () => {
     if (!conversationId) return;
@@ -83,6 +88,17 @@ useEffect(() => {
     fetchMessages();
 }, [fetchMessages]);
 
+useEffect(() => {
+    const onFocus = () => setWindowFocused(true);
+    const onBlur = () => setWindowFocused(false);
+    window.addEventListener('focus', onFocus);
+    window.addEventListener('blur', onBlur);
+    return () => {
+        window.removeEventListener('focus', onFocus);
+        window.removeEventListener('blur', onBlur);
+    };
+}, []);
+
   // WebSocket real-time updates
 useEffect(() => {
     if (!user || !conversationId) return;
@@ -97,6 +113,13 @@ useEffect(() => {
             (message.senderId === conversationId && message.receiverId === user.id)
         ) {
             setMessages((prev) => [...prev, message]);
+            // Notification for new message from other user
+            if (message.senderId === conversationId && !windowFocused) {
+                if (window.Notification && Notification.permission === 'granted') {
+                    new Notification('New message', { body: message.content });
+                }
+                if (audioRef.current) audioRef.current.play();
+            }
         }
         } catch {}
     },
@@ -135,14 +158,51 @@ useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
 }, [messages]);
 
+useEffect(() => {
+    // Compute the other user's ID from the messages list
+    if (messages.length > 0 && user) {
+      const firstMsg = messages[0];
+      const otherId = firstMsg.senderId === user.id ? firstMsg.receiverId : firstMsg.senderId;
+      setOtherUserId(otherId);
+    }
+}, [messages, user]);
+
+useEffect(() => {
+    if (
+      windowFocused &&
+      user &&
+      conversationId
+    ) {
+      // Only call mark-as-read once per focus/conversation
+      const key = `${user.id}-${conversationId}`;
+      if (!markAsReadCalledRef.current[key]) {
+        markAsReadCalledRef.current[key] = true;
+        console.debug('[Chat] Marking messages as read for conversationId:', conversationId, 'user.id:', user.id);
+        fetch(`http://localhost:8080/api/chat/read/${conversationId}`, {
+          method: 'PUT',
+          headers: { 'Authorization': `Bearer ${getAuthToken()}` },
+        }).then(() => {
+          if (typeof onMessagesRead === 'function') onMessagesRead();
+        });
+      }
+    } else if (windowFocused && user && conversationId === user.id) {
+      // Reset the flag if self-chat or invalid
+      markAsReadCalledRef.current = {};
+    }
+}, [windowFocused, user, conversationId, getAuthToken, onMessagesRead]);
+
 if (!conversationId) {
     return <div className="flex-1 flex items-center justify-center text-gray-400">Select a conversation to start chatting.</div>;
+}
+if (user && conversationId === user.id) {
+    return <div className="flex-1 flex items-center justify-center text-gray-400">You cannot chat with yourself.</div>;
 }
 if (loading) return <div className="flex-1 flex items-center justify-center text-gray-400">Loading messages...</div>;
 if (error) return <div className="flex-1 flex items-center justify-center text-red-500">{error}</div>;
 
 return (
     <div className="flex-1 flex flex-col bg-gray-50">
+      <audio ref={audioRef} src="./notification.mp3" preload="auto" />
       {/* Messages area: scrollable */}
       <div className="flex-1 overflow-y-auto p-4 sm:p-6 bg-gray-50" style={{ maxHeight: '60vh' }}>
         <div className="flex flex-col gap-4">
@@ -160,7 +220,7 @@ return (
             </div>
           ))}
           {isOtherTyping && (
-            <div className="text-xs text-gray-500 italic mb-2">The other user is typing...</div>
+            <div className="text-xs text-gray-500 italic mb-2">The user is typing...</div>
           )}
           <div ref={messagesEndRef} />
         </div>

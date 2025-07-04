@@ -118,19 +118,27 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
                         if (!project?.client?.id) return;
                         const token = getAuthToken();
                         if (!token) return;
+                        // Call backend to get or create conversation
+                        const res = await fetch('http://localhost:8080/api/chat/conversation-with', {
+                          method: 'POST',
+                          headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json',
+                          },
+                          body: JSON.stringify({ userId: project.client.id, projectId: project.id }),
+                        });
+                        if (!res.ok) return;
+                        const { conversationId } = await res.json();
+                        // Send auto-message
                         await fetch('http://localhost:8080/api/chat/send', {
                           method: 'POST',
                           headers: {
                             'Authorization': `Bearer ${token}`,
                             'Content-Type': 'application/json',
                           },
-                          body: JSON.stringify({
-                            recipientId: project.client.id,
-                            content: `Hi, I'm interested in your project: ${project.title}`,
-                            projectId: project.id,
-                          }),
+                          body: JSON.stringify({ conversationId, content: 'Hi, I am interested in your project!' })
                         });
-                        window.location.href = `/chat/${project.client.id}`;
+                        window.location.href = `/chat/${conversationId}`;
                       }}
                       className="mt-6 w-full flex items-center justify-center bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold"
                     >

@@ -13,9 +13,9 @@ public class MessageDTO {
     private String attachmentUrl;
     private String type;
     private LocalDateTime createdAt;
-    private Long projectId;
+    private Long conversationId;
 
-    public MessageDTO(Long id, String content, Long senderId, String senderUsername, Long receiverId, String receiverUsername, Boolean isRead, String attachmentUrl, String type, LocalDateTime createdAt, Long projectId) {
+    public MessageDTO(Long id, String content, Long senderId, String senderUsername, Long receiverId, String receiverUsername, Boolean isRead, String attachmentUrl, String type, LocalDateTime createdAt, Long conversationId) {
         this.id = id;
         this.content = content;
         this.senderId = senderId;
@@ -26,7 +26,7 @@ public class MessageDTO {
         this.attachmentUrl = attachmentUrl;
         this.type = type;
         this.createdAt = createdAt;
-        this.projectId = projectId;
+        this.conversationId = conversationId;
     }
 
     // Getters and setters
@@ -50,6 +50,6 @@ public class MessageDTO {
     public void setType(String type) { this.type = type; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
-    public Long getProjectId() { return projectId; }
-    public void setProjectId(Long projectId) { this.projectId = projectId; }
+    public Long getConversationId() { return conversationId; }
+    public void setConversationId(Long conversationId) { this.conversationId = conversationId; }
 }

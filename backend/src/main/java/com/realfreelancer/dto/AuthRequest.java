@@ -26,7 +26,7 @@ public class AuthRequest {
     private Set<String> skills;
     
     private String bio;
-    
+
     public interface Registration extends Default {}
     public interface Login extends Default {}
     

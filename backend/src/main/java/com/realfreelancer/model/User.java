@@ -67,6 +67,9 @@ public class User {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
     
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<ConversationParticipant> conversations = new HashSet<>();
+    
     // Constructors
     public User() {}
     
@@ -179,6 +182,14 @@ public class User {
     
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+    
+    public Set<ConversationParticipant> getConversations() {
+        return conversations;
+    }
+    
+    public void setConversations(Set<ConversationParticipant> conversations) {
+        this.conversations = conversations;
     }
     
     // Helper methods

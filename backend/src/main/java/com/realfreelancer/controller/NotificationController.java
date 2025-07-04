@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/notifications")
@@ -33,6 +34,13 @@ public class NotificationController {
     @Autowired
     private UserRepository userRepository;
 
+    // Helper method to find user by username or email
+    private User findUserByPrincipal(String principal) {
+        return userRepository.findByUsername(principal)
+            .or(() -> userRepository.findByEmail(principal))
+            .orElseThrow(() -> new RuntimeException("User not found"));
+    }
+
     // Get user's notifications
     @GetMapping
     public ResponseEntity<?> getUserNotifications(
@@ -42,9 +50,8 @@ public class NotificationController {
     ) {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            String username = authentication.getName();
-            User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+            String principal = authentication.getName();
+            User user = findUserByPrincipal(principal);
 
             Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
             Page<Notification> notifications;
@@ -56,7 +63,17 @@ public class NotificationController {
                 notifications = notificationRepository.findByUser(user, pageable);
             }
 
-            return ResponseEntity.ok(notifications);
+            // Map to DTOs
+            List<Map<String, ?>> dtos = notifications.getContent().stream().map(n -> Map.of(
+                "id", n.getId(),
+                "type", n.getType().name(),
+                "title", n.getTitle(),
+                "message", n.getMessage(),
+                "isRead", n.getIsRead(),
+                "createdAt", n.getCreatedAt(),
+                "link", n.getActionUrl()
+            )).collect(Collectors.toList());
+            return ResponseEntity.ok(dtos);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Error fetching notifications: " + e.getMessage());
         }
@@ -67,9 +84,8 @@ public class NotificationController {
     public ResponseEntity<?> getUnreadCount() {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            String username = authentication.getName();
-            User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+            String principal = authentication.getName();
+            User user = findUserByPrincipal(principal);
 
             Long unreadCount = notificationRepository.countByUserAndIsReadFalse(user);
             return ResponseEntity.ok(Map.of("unreadCount", unreadCount));
@@ -83,9 +99,8 @@ public class NotificationController {
     public ResponseEntity<?> markAsRead(@PathVariable Long notificationId) {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            String username = authentication.getName();
-            User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+            String principal = authentication.getName();
+            User user = findUserByPrincipal(principal);
 
             Optional<Notification> notificationOpt = notificationRepository.findById(notificationId);
             if (!notificationOpt.isPresent()) {
@@ -110,9 +125,8 @@ public class NotificationController {
     public ResponseEntity<?> markAllAsRead() {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            String username = authentication.getName();
-            User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+            String principal = authentication.getName();
+            User user = findUserByPrincipal(principal);
 
             int updatedCount = notificationRepository.markAllAsRead(user);
             return ResponseEntity.ok(Map.of("updatedCount", updatedCount));
@@ -152,9 +166,8 @@ public class NotificationController {
     public ResponseEntity<?> getNotificationPreferences() {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            String username = authentication.getName();
-            User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+            String principal = authentication.getName();
+            User user = findUserByPrincipal(principal);
 
             Map<String, Boolean> preferences = notificationService.getUserPreferences(user);
             return ResponseEntity.ok(preferences);
@@ -168,9 +181,8 @@ public class NotificationController {
     public ResponseEntity<?> updateNotificationPreferences(@RequestBody Map<String, Boolean> preferences) {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            String username = authentication.getName();
-            User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+            String principal = authentication.getName();
+            User user = findUserByPrincipal(principal);
 
             Map<String, Boolean> updatedPreferences = notificationService.updateUserPreferences(user, preferences);
             return ResponseEntity.ok(updatedPreferences);
