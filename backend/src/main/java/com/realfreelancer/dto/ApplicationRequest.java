@@ -25,7 +25,7 @@ public class ApplicationRequest {
     
     // Constructors
     public ApplicationRequest() {}
-    
+
     public ApplicationRequest(String pitch, BigDecimal proposedBudget, Integer estimatedDurationDays) {
         this.pitch = pitch;
         this.proposedBudget = proposedBudget;

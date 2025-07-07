@@ -8,6 +8,9 @@ import com.realfreelancer.repository.UserRepository;
 import com.realfreelancer.repository.ProjectRepository;
 import com.realfreelancer.repository.ApplicationRepository;
 import com.realfreelancer.repository.ReviewRepository;
+import com.realfreelancer.dto.ApplicationDTO;
+import com.realfreelancer.dto.ProjectDTO;
+import com.realfreelancer.dto.ClientDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -62,14 +65,15 @@ public class DashboardController {
             Map<String, Object> userAnalytics = analyticsService.getUserAnalytics(user.getUsername());
             dashboard.put("analytics", userAnalytics);
             
-            // Recent activity
-            dashboard.put("recentProjects", projectRepository.findByClient(user, 
-                org.springframework.data.domain.PageRequest.of(0, 5, 
-                    org.springframework.data.domain.Sort.by("createdAt").descending())).getContent());
+            // Recent projects (map to DTO)
+            var recentProjects = projectRepository.findByClient(user,
+                org.springframework.data.domain.PageRequest.of(0, 5, org.springframework.data.domain.Sort.by("createdAt").descending())).getContent();
+            dashboard.put("recentProjects", recentProjects.stream().map(this::toProjectDTO).toList());
             
-            dashboard.put("recentApplications", applicationRepository.findByFreelancer(user, 
-                org.springframework.data.domain.PageRequest.of(0, 5, 
-                    org.springframework.data.domain.Sort.by("createdAt").descending())).getContent());
+            // Recent applications (map to DTO)
+            var recentApplications = applicationRepository.findByFreelancer(user,
+                org.springframework.data.domain.PageRequest.of(0, 5, org.springframework.data.domain.Sort.by("createdAt").descending())).getContent();
+            dashboard.put("recentApplications", recentApplications.stream().map(this::toApplicationDTO).toList());
             
             // Quick stats
             dashboard.put("quickStats", Map.of(
@@ -201,5 +205,45 @@ public class DashboardController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Error fetching performance metrics: " + e.getMessage());
         }
+    }
+
+    // --- DTO mapping helpers ---
+    private ProjectDTO toProjectDTO(com.realfreelancer.model.Project project) {
+        ProjectDTO dto = new ProjectDTO();
+        dto.setId(project.getId());
+        dto.setTitle(project.getTitle());
+        dto.setDescription(project.getDescription());
+        dto.setBudget(project.getBudget());
+        dto.setDeadline(project.getDeadline());
+        dto.setRequiredSkills(project.getRequiredSkills());
+        dto.setStatus(project.getStatus().name());
+        dto.setType(project.getType().name());
+        dto.setCreatedAt(project.getCreatedAt());
+        if (project.getClient() != null) {
+            dto.setClient(new ClientDTO(
+                project.getClient().getId(),
+                project.getClient().getUsername(),
+                project.getClient().getEmail(),
+                Boolean.TRUE.equals(project.getClient().getIsVerified())
+            ));
+        }
+        return dto;
+    }
+
+    private ApplicationDTO toApplicationDTO(com.realfreelancer.model.Application app) {
+        return new ApplicationDTO(
+            app.getId(),
+            app.getPitch(),
+            app.getProposedBudget(),
+            app.getEstimatedDurationDays(),
+            app.getStatus() != null ? app.getStatus().name() : null,
+            app.getAttachmentUrl(),
+            app.getCreatedAt(),
+            app.getUpdatedAt(),
+            app.getProject() != null ? app.getProject().getId() : null,
+            app.getProject() != null ? app.getProject().getTitle() : null,
+            app.getFreelancer() != null ? app.getFreelancer().getId() : null,
+            app.getFreelancer() != null ? app.getFreelancer().getUsername() : null
+        );
     }
 } 

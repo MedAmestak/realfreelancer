@@ -14,9 +14,11 @@ import {
   Award,
   AlertCircle,
   ExternalLink,
-  Users
+  Users,
+  BellDot
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import SockJS from 'sockjs-client';
 
 interface Notification {
   id: number;
@@ -45,10 +47,19 @@ const NotificationCenter: React.FC<NotificationCenterProps> = () => {
   const [activeTab, setActiveTab] = useState<'all' | 'unread' | 'settings'>('all');
   const wsRef = useRef<WebSocket | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const pageSize = 5;
+  const listRef = useRef<HTMLDivElement>(null);
 
   const setupWebSocket = () => {
     try {
-      const ws = new WebSocket('ws://localhost:8080/ws');
+      const token = getAuthToken();
+      if (!token) {
+        console.error('No authentication token found');
+        return;
+      }
+      const ws = new SockJS(`http://localhost:8080/ws?token=${token}`);
       wsRef.current = ws;
 
       ws.onopen = () => {
@@ -73,10 +84,22 @@ const NotificationCenter: React.FC<NotificationCenterProps> = () => {
   };
 
   const handleNewNotification = (notification: Notification) => {
-    setNotifications(prev => [notification, ...prev]);
-    setUnreadCount(prev => prev + 1);
+    setNotifications(prev => {
+      if (prev.some(n => n.id === notification.id)) return prev;
+      return [notification, ...prev];
+    });
+    if (!notification.isRead) setUnreadCount(prev => prev + 1);
   };
 
+  // Helper to normalize notification API response
+  function normalizeNotificationsResponse(data: any): Notification[] {
+    if (Array.isArray(data)) return data;
+    if (data && Array.isArray(data.content)) return data.content;
+    return [];
+  }
+
+  // Remove infinite scroll and custom scroll handler
+  // Only fetch once per dropdown open, fetch up to 50 notifications
   const fetchNotifications = async () => {
     try {
       const token = getAuthToken();
@@ -84,19 +107,19 @@ const NotificationCenter: React.FC<NotificationCenterProps> = () => {
         console.error('No authentication token found');
         return;
       }
-
-      const response = await fetch('/api/notifications', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      
+      setLoading(true);
+      const response = await fetch(`http://localhost:8080/api/notifications?page=0&size=50`,
+        { headers: { 'Authorization': `Bearer ${token}` } });
       if (response.ok) {
         const data = await response.json();
-        setNotifications(data.content || []);
+        const fetched = normalizeNotificationsResponse(data);
+        setNotifications(fetched);
+        setUnreadCount(fetched.filter(n => !n.isRead).length);
       }
     } catch (error) {
       console.error('Error fetching notifications: Network error');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -108,7 +131,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = () => {
         return;
       }
 
-      const response = await fetch('/api/notifications/unread-count', {
+      const response = await fetch('http://localhost:8080/api/notifications/unread-count', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -123,17 +146,21 @@ const NotificationCenter: React.FC<NotificationCenterProps> = () => {
     }
   };
 
+  // On mount, only set up WebSocket and unread count
   useEffect(() => {
-    fetchNotifications();
     fetchUnreadCount();
     setupWebSocket();
-    
     return () => {
-      if (wsRef.current) {
-        wsRef.current.close();
-      }
+      if (wsRef.current) wsRef.current.close();
     };
   }, []);
+
+  // When dropdown is opened, fetch notifications
+  useEffect(() => {
+    if (isOpen) {
+      fetchNotifications();
+    }
+  }, [isOpen]);
 
   const markAsRead = async (notificationId: number) => {
     try {
@@ -143,7 +170,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = () => {
         return;
       }
 
-      const response = await fetch(`/api/notifications/${notificationId}/read`, {
+      const response = await fetch(`http://localhost:8080/api/notifications/${notificationId}/read`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -169,7 +196,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = () => {
         return;
       }
 
-      const response = await fetch('/api/notifications/mark-all-read', {
+      const response = await fetch('http://localhost:8080/api/notifications/mark-all-read', {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -193,7 +220,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = () => {
         return;
       }
 
-      const response = await fetch(`/api/notifications/${notificationId}`, {
+      const response = await fetch(`http://localhost:8080/api/notifications/${notificationId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -244,16 +271,35 @@ const NotificationCenter: React.FC<NotificationCenterProps> = () => {
     setActiveTab(tab);
   };
 
-  const handleClickOutside = useCallback((event: MouseEvent) => {
-    if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-      setIsOpen(false);
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    if (!isOpen) return;
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
     }
-  }, []);
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isOpen]);
 
   const filteredNotifications = notifications.filter(notification => {
     if (activeTab === 'unread') return !notification.isRead;
     return true;
   });
+
+  // When notification panel is opened, mark all as read and reset unread count
+  useEffect(() => {
+    if (isOpen) {
+      if (unreadCount > 0) {
+        markAllAsRead();
+        setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+        setUnreadCount(0);
+      }
+    }
+  }, [isOpen]);
 
   return (
     <div className="relative">
@@ -261,13 +307,15 @@ const NotificationCenter: React.FC<NotificationCenterProps> = () => {
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="relative p-2 text-gray-600 hover:text-gray-900 transition-colors"
+        aria-label="Open notifications"
       >
         <Bell className="w-6 h-6" />
         {unreadCount > 0 && (
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
-            className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center"
+            className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center shadow-lg border-2 border-white z-10"
+            style={{ pointerEvents: 'none' }}
           >
             {unreadCount > 99 ? '99+' : unreadCount}
           </motion.div>
@@ -278,155 +326,79 @@ const NotificationCenter: React.FC<NotificationCenterProps> = () => {
       <AnimatePresence>
         {isOpen && (
           <motion.div
+            ref={dropdownRef}
             initial={{ opacity: 0, y: -10, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.95 }}
-            className="absolute right-0 mt-2 w-96 bg-white rounded-xl shadow-xl border border-gray-200 z-50"
+            className="absolute right-0 mt-2 w-[420px] bg-white rounded-xl shadow-2xl border border-gray-200 z-50"
+            style={{ boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.15)' }}
           >
             {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-gray-100">
-              <h3 className="text-lg font-semibold text-gray-900">Notifications</h3>
-              <div className="flex items-center space-x-2">
-                {unreadCount > 0 && (
-                  <button
-                    onClick={markAllAsRead}
-                    className="text-sm text-blue-600 hover:text-blue-800"
-                  >
-                    Mark all read
-                  </button>
-                )}
-                <button
-                  onClick={() => setIsOpen(false)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
-
-            {/* Tabs */}
-            <div className="flex border-b border-gray-100">
+            <div className="flex items-center justify-between p-5 border-b border-gray-100">
+              <h3 className="text-xl font-bold text-gray-900">Notifications</h3>
               <button
-                onClick={() => setActiveTab('all')}
-                className={`flex-1 py-3 text-sm font-medium ${
-                  activeTab === 'all' 
-                    ? 'text-blue-600 border-b-2 border-blue-600' 
-                    : 'text-gray-500 hover:text-gray-700'
-                }`}
+                onClick={() => setIsOpen(false)}
+                className="text-gray-400 hover:text-gray-600"
+                aria-label="Close notifications"
               >
-                All
-              </button>
-              <button
-                onClick={() => setActiveTab('unread')}
-                className={`flex-1 py-3 text-sm font-medium ${
-                  activeTab === 'unread' 
-                    ? 'text-blue-600 border-b-2 border-blue-600' 
-                    : 'text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                Unread ({unreadCount})
-              </button>
-              <button
-                onClick={() => setActiveTab('settings')}
-                className={`flex-1 py-3 text-sm font-medium ${
-                  activeTab === 'settings' 
-                    ? 'text-blue-600 border-b-2 border-blue-600' 
-                    : 'text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                <Settings className="w-4 h-4 inline mr-1" />
-                Settings
+                <X className="w-6 h-6" />
               </button>
             </div>
-
-            {/* Content */}
-            <div className="max-h-96 overflow-y-auto">
-              {activeTab === 'settings' ? (
-                <div className="p-4">
-                  <h4 className="text-sm font-medium text-gray-900 mb-4">Notification Preferences</h4>
-                  <p className="text-sm text-gray-600">Settings will be available soon.</p>
+            {/* Content: Only notifications list */}
+            <div
+              ref={listRef}
+              className="h-[400px] overflow-y-auto px-2 py-2"
+              style={{ minWidth: 380 }}
+            >
+              {loading && notifications.length === 0 ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
                 </div>
-              ) : (
-                <div>
-                  {loading ? (
-                    <div className="flex items-center justify-center py-8">
-                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-                    </div>
-                  ) : filteredNotifications.length > 0 ? (
-                    filteredNotifications.map((notification) => (
-                      <motion.div
-                        key={notification.id}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        className={`p-4 border-b border-gray-100 hover:bg-gray-50 transition-colors ${
-                          !notification.isRead ? 'bg-blue-50' : ''
-                        }`}
-                      >
-                        <div className="flex items-start space-x-3">
-                          <div className="flex-shrink-0 mt-1">
-                            {getNotificationIcon(notification.type)}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between">
-                              <p className="text-sm font-medium text-gray-900">
-                                {notification.title}
-                              </p>
-                              <div className="flex items-center space-x-1">
-                                <span className="text-xs text-gray-500">
-                                  {formatTime(notification.createdAt)}
-                                </span>
-                                {!notification.isRead && (
-                                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                                )}
-                              </div>
-                            </div>
-                            <p className="text-sm text-gray-600 mt-1">
-                              {notification.message}
-                            </p>
-                            <div className="flex items-center space-x-2 mt-2">
-                              {!notification.isRead && (
-                                <button
-                                  onClick={() => markAsRead(notification.id)}
-                                  className="text-xs text-blue-600 hover:text-blue-800 flex items-center"
-                                >
-                                  <Check className="w-3 h-3 mr-1" />
-                                  Mark as read
-                                </button>
-                              )}
-                              {notification.link && (
-                                <button
-                                  onClick={() => {
-                                    const link = notification.link;
-                                    if (link) {
-                                      window.location.href = link;
-                                    }
-                                  }}
-                                  className="text-xs text-blue-600 hover:text-blue-800 flex items-center"
-                                >
-                                  <ExternalLink className="w-3 h-3 mr-1" />
-                                  View Details
-                                </button>
-                              )}
-                              <button
-                                onClick={() => deleteNotification(notification.id)}
-                                className="text-xs text-red-600 hover:text-red-800 flex items-center"
-                              >
-                                <Trash2 className="w-3 h-3 mr-1" />
-                                Delete
-                              </button>
-                            </div>
-                          </div>
+              ) : notifications.length > 0 ? (
+                <AnimatePresence>
+                  {notifications.map((notification, idx) => (
+                    <motion.div
+                      key={notification.id}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 20 }}
+                      transition={{ duration: 0.2 }}
+                      className={`group flex items-center gap-4 bg-white rounded-xl shadow-sm border border-gray-100 px-4 py-3 mb-2 cursor-pointer relative transition-all duration-150
+                        ${!notification.isRead ? 'before:content-[""] before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1.5 before:rounded-l-xl before:bg-blue-500/80 bg-blue-50' : ''}
+                        hover:shadow-md hover:bg-gray-50`}
+                      style={{ minHeight: 64 }}
+                      onClick={() => {
+                        if (notification.link) {
+                          window.open(notification.link, '_blank');
+                        }
+                      }}
+                    >
+                      <div className="flex-shrink-0 flex items-center justify-center h-10 w-10">
+                        {getNotificationIcon(notification.type)}
+                      </div>
+                      <div className="flex-1 min-w-0 flex flex-col justify-center">
+                        <div className="flex items-center justify-between">
+                          <span className="font-semibold text-gray-900 text-base truncate max-w-[220px]">{notification.title}</span>
+                          <span className="text-xs text-gray-400 ml-2 whitespace-nowrap">{formatTime(notification.createdAt)}</span>
                         </div>
-                      </motion.div>
-                    ))
-                  ) : (
-                    <div className="text-center py-8">
-                      <Bell className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                      <p className="text-sm text-gray-500">
-                        {activeTab === 'unread' ? 'No unread notifications' : 'No notifications yet'}
-                      </p>
+                        <span className="text-sm text-gray-600 mt-0.5 truncate max-w-[260px]">{notification.message}</span>
+                      </div>
+                    </motion.div>
+                  ))}
+                  {loading && (
+                    <div className="flex items-center justify-center py-4">
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
                     </div>
                   )}
+                  {!hasMore && notifications.length > 0 && (
+                    <div className="text-center text-xs text-gray-400 py-2">No more notifications</div>
+                  )}
+                </AnimatePresence>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-12">
+                  <Bell className="w-14 h-14 text-gray-300 mb-4 animate-float" />
+                  <p className="text-base text-gray-500 font-medium">You're all caught up!</p>
+                  <p className="text-sm text-gray-400 mt-1">No notifications yet. We'll keep you posted.</p>
                 </div>
               )}
             </div>

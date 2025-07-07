@@ -3,11 +3,13 @@ package com.realfreelancer.controller;
 import com.realfreelancer.model.Project;
 import com.realfreelancer.model.Application;
 import com.realfreelancer.model.User;
+import com.realfreelancer.model.Conversation;
 import com.realfreelancer.repository.ProjectRepository;
 import com.realfreelancer.repository.ApplicationRepository;
 import com.realfreelancer.repository.UserRepository;
 import com.realfreelancer.service.ProjectService;
 import com.realfreelancer.service.ChatService;
+import com.realfreelancer.service.NotificationService;
 import com.realfreelancer.dto.ProjectRequest;
 import com.realfreelancer.dto.ApplicationRequest;
 import com.realfreelancer.dto.ProjectDTO;
@@ -49,6 +51,9 @@ class ProjectController {
 
     @Autowired
     private ChatService chatService;
+
+    @Autowired
+    private NotificationService notificationService;
 
     // Get all projects with pagination and filtering
     @GetMapping
@@ -264,7 +269,11 @@ class ProjectController {
             projectRepository.save(project);
 
             // Send system message to start conversation
-            chatService.sendSystemMessage(freelancer, project.getClient(), "Hi, I'm interested in your project: " + project.getTitle() + "!", project);
+            Conversation conversation = chatService.findOrCreatePrivateConversation(freelancer, project.getClient());
+            chatService.sendSystemMessage(freelancer, project.getClient(), "Hi, I'm interested in your project: " + project.getTitle() + "!", conversation);
+
+            // Create notification for client
+            notificationService.createProjectApplicationNotification(project.getClient(), project.getTitle(), freelancer.getUsername());
 
             return ResponseEntity.ok(savedApplication);
         } catch (Exception e) {

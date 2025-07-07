@@ -22,7 +22,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ conversationId, projectId, 
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!conversationId || !projectId || !message.trim()) return;
+    if (!conversationId || !message.trim()) return;
     setLoading(true);
     setError(null);
     try {
@@ -33,7 +33,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ conversationId, projectId, 
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ recipientId: conversationId, content: message, projectId })
+        body: JSON.stringify({ conversationId, content: message })
       });
       if (!res.ok) throw new Error('Failed to send message');
       setMessage('');
@@ -98,13 +98,13 @@ const MessageInput: React.FC<MessageInputProps> = ({ conversationId, projectId, 
         onChange={handleInputChange}
         onFocus={handleFocus}
         onBlur={handleBlur}
-        disabled={!conversationId || !projectId || loading}
+        disabled={!conversationId || loading}
         autoComplete="off"
       />
       <button
         type="submit"
         className={buttonClassName}
-        disabled={!conversationId || !projectId || loading || !message.trim()}
+        disabled={!conversationId || loading || !message.trim()}
       >
         Send
       </button>

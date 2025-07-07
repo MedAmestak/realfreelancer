@@ -2,7 +2,7 @@ import { Client, IMessage, StompSubscription } from '@stomp/stompjs';
 import { use } from 'react';
 import SockJS from 'sockjs-client';
 
-const SOCKET_URL = 'http://localhost:8080/ws';
+const SOCKET_URL = (token: string) => `http://localhost:8080/ws?token=${token}`;
 
 export interface SocketOptions {
   onMessage: (msg: IMessage) => void;
@@ -13,7 +13,7 @@ export interface SocketOptions {
 
 export function connectSocket({ onMessage, user, token, onTyping }: SocketOptions) {
   const client = new Client({
-    webSocketFactory: () => new SockJS(SOCKET_URL),
+    webSocketFactory: () => new SockJS(SOCKET_URL(token)),
     connectHeaders: {
       Authorization: `Bearer ${token}`
     },
@@ -40,8 +40,20 @@ export function connectSocket({ onMessage, user, token, onTyping }: SocketOption
 
   return {
     disconnect: () => client.deactivate(),
-    send: (destination: string, body: string) => client.publish({ destination, body }),
-    sendTyping: (typingPayload: object) => client.publish({ destination: '/app/typing', body: JSON.stringify(typingPayload) }),
+    send: (destination: string, body: string) => {
+      if (client.connected) {
+        client.publish({ destination, body });
+      } else {
+        console.warn('STOMP client not connected');
+      }
+    },
+    sendTyping: (typingPayload: object) => {
+      if (client.connected) {
+        client.publish({ destination: '/app/typing', body: JSON.stringify(typingPayload) });
+      } else {
+        console.warn('STOMP client not connected');
+      }
+    },
     client,
   };
 } 

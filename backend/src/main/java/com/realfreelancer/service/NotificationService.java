@@ -34,11 +34,11 @@ public class NotificationService {
         
         Notification savedNotification = notificationRepository.save(notification);
         
-        // Send real-time notification via WebSocket
+        // Send real-time notification via WebSocket (use DTO)
         messagingTemplate.convertAndSendToUser(
             user.getUsername(),
             "/queue/notifications",
-            savedNotification
+            new com.realfreelancer.dto.NotificationDTO(savedNotification)
         );
         
         return savedNotification;
@@ -136,7 +136,7 @@ public class NotificationService {
             case PROJECT_COMPLETED -> "🎉";
             case NEW_MESSAGE -> "💬";
             case REVIEW_RECEIVED -> "⭐";
-            case BADGE_EARNED -> "🏆";
+            case BADGE_EARNED -> "��";
             case SYSTEM_ANNOUNCEMENT -> "📢";
             case PAYMENT_RECEIVED -> "💰";
             case DEADLINE_REMINDER -> "⏰";
