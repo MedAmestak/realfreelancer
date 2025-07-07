@@ -63,12 +63,18 @@ public class AuthRequest {
         this.githubLink = githubLink;
     }
     
+    /**
+     * Returns a defensive copy of the skills set.
+     */
     public Set<String> getSkills() {
         return (skills == null) ? null : new HashSet<>(skills);
     }
     
+    /**
+     * Sets skills with a defensive copy and makes it unmodifiable internally.
+     */
     public void setSkills(Set<String> skills) {
-        this.skills = (skills == null) ? null : new HashSet<>(skills);
+        this.skills = (skills == null) ? null : java.util.Collections.unmodifiableSet(new HashSet<>(skills));
     }
     
     public String getBio() {

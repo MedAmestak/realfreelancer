@@ -20,14 +20,19 @@ public class AuthUserDTO {
         this.email = user.getEmail();
         this.bio = user.getBio();
         this.githubLink = user.getGithubLink();
-        this.skills = user.getSkills();
+        this.skills = (user.getSkills() == null) ? null : java.util.Collections.unmodifiableSet(new java.util.HashSet<>(user.getSkills()));
         this.reputationPoints = user.getReputationPoints();
         this.isVerified = user.getIsVerified();
     }
 
+    /**
+     * Constructs AuthUserDTO with defensive copy of stats map.
+     * @param user the user entity
+     * @param stats the stats map (defensively copied)
+     */
     public AuthUserDTO(User user, java.util.Map<String, Object> stats) {
         this(user);
-        this.stats = stats;
+        this.stats = (stats == null) ? null : java.util.Collections.unmodifiableMap(new java.util.HashMap<>(stats));
     }
 
     // Getters and setters
@@ -41,12 +46,16 @@ public class AuthUserDTO {
     public void setBio(String bio) { this.bio = bio; }
     public String getGithubLink() { return githubLink; }
     public void setGithubLink(String githubLink) { this.githubLink = githubLink; }
+
     public Set<String> getSkills() { return (skills == null) ? null : new java.util.HashSet<>(skills); }
-    public void setSkills(Set<String> skills) { this.skills = (skills == null) ? null : new java.util.HashSet<>(skills); }
+
+    public void setSkills(Set<String> skills) { this.skills = (skills == null) ? null : java.util.Collections.unmodifiableSet(new java.util.HashSet<>(skills)); }
     public Integer getReputationPoints() { return reputationPoints; }
     public void setReputationPoints(Integer reputationPoints) { this.reputationPoints = reputationPoints; }
     public boolean isVerified() { return isVerified; }
     public void setVerified(boolean isVerified) { this.isVerified = isVerified; }
-    public java.util.Map<String, Object> getStats() { return stats; }
-    public void setStats(java.util.Map<String, Object> stats) { this.stats = stats; }
+
+    public java.util.Map<String, Object> getStats() { return (stats == null) ? null : new java.util.HashMap<>(stats); }
+
+    public void setStats(java.util.Map<String, Object> stats) { this.stats = (stats == null) ? null : java.util.Collections.unmodifiableMap(new java.util.HashMap<>(stats)); }
 } 
