@@ -86,7 +86,7 @@ export default function PostProjectPage() {
         'Content-Type': 'application/json'
       }
       
-      const token = getAuthToken && getAuthToken();
+      const token = getAuthToken?.();
       if (token) {
         headers.Authorization = `Bearer ${token}`;
       }
