@@ -35,6 +35,14 @@ const NotificationCenter: React.FC<NotificationCenterProps> = () => {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
 
+  const handleNewNotification = (notification: Notification) => {
+    setNotifications(prev => {
+      if (prev.some(n => n.id === notification.id)) return prev;
+      return [notification, ...prev];
+    });
+    if (!notification.isRead) setUnreadCount(prev => prev + 1);
+  };
+
   const setupWebSocket = () => {
     try {
       const token = getAuthToken();
@@ -64,14 +72,6 @@ const NotificationCenter: React.FC<NotificationCenterProps> = () => {
     } catch (error) {
       console.error('WebSocket error: Connection failed');
     }
-  };
-
-  const handleNewNotification = (notification: Notification) => {
-    setNotifications(prev => {
-      if (prev.some(n => n.id === notification.id)) return prev;
-      return [notification, ...prev];
-    });
-    if (!notification.isRead) setUnreadCount(prev => prev + 1);
   };
 
   // Helper to normalize notification API response
@@ -384,8 +384,8 @@ const NotificationCenter: React.FC<NotificationCenterProps> = () => {
               ) : (
                 <div className="flex flex-col items-center justify-center py-12">
                   <Bell className="w-14 h-14 text-gray-300 mb-4 animate-float" />
-                  <p className="text-base text-gray-500 font-medium">You're all caught up!</p>
-                  <p className="text-sm text-gray-400 mt-1">No notifications yet. We'll keep you posted.</p>
+                  <p className="text-base text-gray-500 font-medium">You&apos;re all caught up!</p>
+                  <p className="text-sm text-gray-400 mt-1">No notifications yet. We&apos;ll keep you posted.</p>
                 </div>
               )}
             </div>

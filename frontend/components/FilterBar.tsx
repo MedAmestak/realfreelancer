@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import React, { useCallback, useState } from 'react'
 import { Filter, X } from 'lucide-react'
 
 interface FilterBarProps {
@@ -34,6 +34,19 @@ export default function FilterBar({ selectedSkills, onSkillsChange }: FilterBarP
     onSkillsChange([])
   }
 
+  const handleClearFilters = useCallback(() => {
+    clearFilters();
+  }, [clearFilters]);
+  const handleToggleSkill = useCallback((skill: string) => {
+    toggleSkill(skill);
+  }, [toggleSkill]);
+  const handleOpen = useCallback(() => {
+    setIsOpen(true);
+  }, []);
+  const handleClose = useCallback(() => {
+    setIsOpen(false);
+  }, []);
+
   // The filter content (used in both modal and sidebar)
   const filterContent = (
     <div className="w-full max-w-xs mx-auto md:max-w-none md:w-full">
@@ -44,7 +57,7 @@ export default function FilterBar({ selectedSkills, onSkillsChange }: FilterBarP
         </h3>
         {selectedSkills.length > 0 && (
           <button
-            onClick={clearFilters}
+            onClick={handleClearFilters}
             className="text-sm text-gray-500 hover:text-gray-700"
           >
             Clear all
@@ -64,7 +77,7 @@ export default function FilterBar({ selectedSkills, onSkillsChange }: FilterBarP
               >
                 {skill}
                 <button
-                  onClick={() => toggleSkill(skill)}
+                  onClick={() => handleToggleSkill(skill)}
                   className="ml-1 hover:text-red-600"
                 >
                   <X className="w-3 h-3" />
@@ -87,7 +100,7 @@ export default function FilterBar({ selectedSkills, onSkillsChange }: FilterBarP
               <input
                 type="checkbox"
                 checked={selectedSkills.includes(skill)}
-                onChange={() => toggleSkill(skill)}
+                onChange={() => handleToggleSkill(skill)}
                 className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
               />
               <span className="text-sm text-gray-700">{skill}</span>
@@ -157,7 +170,7 @@ export default function FilterBar({ selectedSkills, onSkillsChange }: FilterBarP
       {/* Mobile: Sticky Filters Button */}
       <div className="fixed bottom-4 left-0 right-0 z-40 flex justify-center md:hidden">
         <button
-          onClick={() => setIsOpen(true)}
+          onClick={handleOpen}
           className="bg-blue-600 text-white px-6 py-3 rounded-full shadow-lg flex items-center gap-2 text-base font-semibold hover:bg-blue-700 transition-all"
         >
           <Filter className="w-5 h-5" /> Filters
@@ -170,7 +183,7 @@ export default function FilterBar({ selectedSkills, onSkillsChange }: FilterBarP
           {/* Overlay */}
           <div
             className="fixed inset-0 bg-black bg-opacity-40 transition-opacity"
-            onClick={() => setIsOpen(false)}
+            onClick={handleClose}
           />
           {/* Drawer */}
           <div className="w-full bg-white rounded-t-2xl shadow-2xl p-6 max-h-[80vh] overflow-y-auto animate-slide-up">
@@ -179,7 +192,7 @@ export default function FilterBar({ selectedSkills, onSkillsChange }: FilterBarP
                 <Filter className="w-5 h-5 mr-2" /> Filters
               </h3>
               <button
-                onClick={() => setIsOpen(false)}
+                onClick={handleClose}
                 className="text-gray-400 hover:text-gray-600"
                 aria-label="Close filters"
               >
@@ -189,13 +202,13 @@ export default function FilterBar({ selectedSkills, onSkillsChange }: FilterBarP
             {filterContent}
             <div className="mt-6 flex gap-2">
               <button
-                onClick={() => setIsOpen(false)}
+                onClick={handleClose}
                 className="flex-1 bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
               >
                 Apply Filters
               </button>
               <button
-                onClick={clearFilters}
+                onClick={handleClearFilters}
                 className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-200 transition-colors"
               >
                 Clear

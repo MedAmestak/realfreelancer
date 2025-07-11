@@ -189,7 +189,7 @@ public class User {
     }
     
     public void setConversations(Set<ConversationParticipant> conversations) {
-        this.conversations = conversations;
+        this.conversations = (conversations == null) ? null : new java.util.HashSet<>(conversations);
     }
     
     // Helper methods
