@@ -20,13 +20,15 @@ import {
 } from 'lucide-react';
 
 interface DashboardStats {
-  totalProjects: number;
-  totalApplications: number;
-  totalReviews: number;
+  projectsPosted: number;
+  projectsCompleted: number;
+  applicationsSubmitted: number;
+  applicationsAccepted: number;
   averageRating: number;
+  totalEarnings: number;
+  responseTime: number;
   completionRate: number;
-  acceptanceRate: number;
-  status: string;
+  // Remove unused fields or add if you use more
 }
 
 interface QuickStats {
@@ -80,6 +82,17 @@ interface ActivityItemProps {
   time: string;
   status: string;
 }
+
+const defaultAnalytics: DashboardStats = {
+  projectsPosted: 0,
+  projectsCompleted: 0,
+  applicationsSubmitted: 0,
+  applicationsAccepted: 0,
+  averageRating: 0,
+  totalEarnings: 0,
+  responseTime: 0,
+  completionRate: 0,
+};
 
 const UserDashboard: React.FC = () => {
   const { user, loading: authLoading, getAuthToken } = useAuth();
@@ -209,6 +222,7 @@ const UserDashboard: React.FC = () => {
     </div>
   );
 
+  // --- UI ---
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -235,71 +249,98 @@ const UserDashboard: React.FC = () => {
     );
   }
 
+  // Use analytics for stat cards
+  const analytics: DashboardStats = stats ?? defaultAnalytics;
+
   return (
-    <div className="min-h-screen bg-gray-50 py-10">
-      <div className="max-w-4xl mx-auto space-y-10">
-        {/* Header */}
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 pb-16">
+      {/* Hero Header */}
+      <section className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-12 md:py-16 shadow-lg mb-10">
+        <div className="max-w-5xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-6">
         <div>
-          <h1 className="text-2xl font-extrabold text-gray-900 mb-2">Welcome back, {user.username}</h1>
-          <p className="text-xm text-gray-500">Your freelance overview at a glance.</p>
+            <h1 className="text-3xl md:text-4xl font-extrabold mb-2 drop-shadow-lg">Welcome back, {user.username}!</h1>
+            <p className="text-lg md:text-xl text-blue-100 mb-4">Your freelance business at a glance.</p>
+            <div className="flex gap-3 mt-4">
+              <button
+                onClick={() => window.location.href = '/post'}
+                className="bg-white/90 hover:bg-white text-blue-700 font-semibold px-5 py-2 rounded-lg shadow transition flex items-center gap-2"
+              >
+                <Briefcase className="w-5 h-5" /> Post Project
+              </button>
+              <button
+                onClick={() => window.location.href = '/projects'}
+                className="bg-white/90 hover:bg-white text-purple-700 font-semibold px-5 py-2 rounded-lg shadow transition flex items-center gap-2"
+              >
+                <Search className="w-5 h-5" /> Browse Projects
+              </button>
+              <button
+                onClick={() => window.location.href = '/chat'}
+                className="bg-white/90 hover:bg-white text-green-700 font-semibold px-5 py-2 rounded-lg shadow transition flex items-center gap-2"
+              >
+                <MessageSquare className="w-5 h-5" /> Messages
+              </button>
+            </div>
+          </div>
+          <div className="hidden md:block">
+            <img src="/dashboard-hero.svg" alt="Dashboard" className="w-64 drop-shadow-xl" />
+          </div>
         </div>
+      </section>
 
-        {/* Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-          <div className="bg-white rounded-2xl shadow p-6 flex flex-col items-center hover:shadow-md transition">
+      {/* Stats Section (analytics only) */}
+      <section className="max-w-5xl mx-auto px-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mb-10">
+          <motion.div whileHover={{ scale: 1.03 }} className="bg-white rounded-2xl shadow p-6 flex flex-col items-center border-t-4 border-blue-500">
             <Briefcase className="w-8 h-8 text-blue-500 mb-2" />
-            <span className="text-3xl font-bold text-gray-900">{stats?.totalProjects ?? 0}</span>
-            <span className="text-sm text-gray-500 mt-1">Projects</span>
-          </div>
-          <div className="bg-white rounded-2xl shadow p-6 flex flex-col items-center hover:shadow-md transition">
-            <FileText className="w-8 h-8 text-green-500 mb-2" />
-            <span className="text-3xl font-bold text-gray-900">{stats?.totalApplications ?? 0}</span>
+            <span className="text-3xl font-bold text-gray-900">{analytics.projectsPosted ?? 0}</span>
+            <span className="text-sm text-gray-500 mt-1">Projects Posted</span>
+          </motion.div>
+          <motion.div whileHover={{ scale: 1.03 }} className="bg-white rounded-2xl shadow p-6 flex flex-col items-center border-t-4 border-green-500">
+            <CheckCircle className="w-8 h-8 text-green-500 mb-2" />
+            <span className="text-3xl font-bold text-gray-900">{analytics.projectsCompleted ?? 0}</span>
+            <span className="text-sm text-gray-500 mt-1">Projects Completed</span>
+          </motion.div>
+          <motion.div whileHover={{ scale: 1.03 }} className="bg-white rounded-2xl shadow p-6 flex flex-col items-center border-t-4 border-yellow-400">
+            <FileText className="w-8 h-8 text-yellow-500 mb-2" />
+            <span className="text-3xl font-bold text-gray-900">{analytics.applicationsSubmitted ?? 0}</span>
             <span className="text-sm text-gray-500 mt-1">Applications</span>
-          </div>
-          <div className="bg-white rounded-2xl shadow p-6 flex flex-col items-center hover:shadow-md transition">
-            <Star className="w-8 h-8 text-yellow-500 mb-2" />
-            <span className="text-3xl font-bold text-gray-900">{stats?.averageRating?.toFixed(1) ?? '0.0'}</span>
+          </motion.div>
+          <motion.div whileHover={{ scale: 1.03 }} className="bg-white rounded-2xl shadow p-6 flex flex-col items-center border-t-4 border-purple-500">
+            <Star className="w-8 h-8 text-purple-500 mb-2" />
+            <span className="text-3xl font-bold text-gray-900">{analytics.averageRating?.toFixed(1) ?? '0.0'}</span>
             <span className="text-sm text-gray-500 mt-1">Avg. Rating</span>
+          </motion.div>
           </div>
-          <div className="bg-white rounded-2xl shadow p-6 flex flex-col items-center hover:shadow-md transition">
-            <CheckCircle className="w-8 h-8 text-purple-500 mb-2" />
-            <span className="text-3xl font-bold text-gray-900">{stats?.completionRate ?? 0}%</span>
-            <span className="text-sm text-gray-500 mt-1">Completion</span>
-          </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mb-10">
+          <motion.div whileHover={{ scale: 1.03 }} className="bg-white rounded-2xl shadow p-6 flex flex-col items-center border-t-4 border-indigo-500">
+            <DollarSign className="w-8 h-8 text-indigo-500 mb-2" />
+            <span className="text-3xl font-bold text-gray-900">${analytics.totalEarnings?.toLocaleString() ?? '0'}</span>
+            <span className="text-sm text-gray-500 mt-1">Total Earnings</span>
+          </motion.div>
+          <motion.div whileHover={{ scale: 1.03 }} className="bg-white rounded-2xl shadow p-6 flex flex-col items-center border-t-4 border-pink-500">
+            <TrendingUp className="w-8 h-8 text-pink-500 mb-2" />
+            <span className="text-3xl font-bold text-gray-900">{analytics.completionRate ?? 0}%</span>
+            <span className="text-sm text-gray-500 mt-1">Completion Rate</span>
+          </motion.div>
+          <motion.div whileHover={{ scale: 1.03 }} className="bg-white rounded-2xl shadow p-6 flex flex-col items-center border-t-4 border-orange-500">
+            <Clock className="w-8 h-8 text-orange-500 mb-2" />
+            <span className="text-3xl font-bold text-gray-900">{analytics.responseTime ?? 0}h</span>
+            <span className="text-sm text-gray-500 mt-1">Response Time</span>
+          </motion.div>
+          <motion.div whileHover={{ scale: 1.03 }} className="bg-white rounded-2xl shadow p-6 flex flex-col items-center border-t-4 border-teal-500">
+            <CheckCircle className="w-8 h-8 text-teal-500 mb-2" />
+            <span className="text-3xl font-bold text-gray-900">{analytics.applicationsAccepted ?? 0}</span>
+            <span className="text-sm text-gray-500 mt-1">Applications Accepted</span>
+          </motion.div>
         </div>
+      </section>
 
-        {/* Quick Actions */}
-        <div className="w-full my-10">
-  <div className="flex justify-between w-full gap-4">
-    <button 
-      onClick={() => (window.location.href = '/post')}
-      className="flex items-center gap-2 bg-green-600 hover:bg-purple text-purple-500 px-6 py-2 rounded-xl font-semibold shadow transition"
-    >
-      <Briefcase className="w-5 h-5" /> Post Project
-    </button>
-
-    <button
-      onClick={() => (window.location.href = '/projects')}
-      className="flex items-center gap-2 bg-green-600 hover:bg-purple-700 text-purple-500 px-6 py-3 rounded-xl font-semibold shadow transition"
-    >
-      <Search className="w-5 h-5" /> Browse Projects
-    </button>
-
-    <button
-      onClick={() => (window.location.href = '/chat/conversation')}
-      className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-blue px-6 py-3 rounded-xl font-semibold shadow transition"
-    >
-      <MessageSquare className="w-5 h-5" /> View Messages
-    </button>
-  </div>
-</div>
-
-
-        {/* Recent Activity */}
+      {/* Recent Activity Section */}
+      <section className="max-w-5xl mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div>
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Recent Projects</h2>
-            <div className="bg-white rounded-2xl shadow p-4 space-y-3">
+            <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2"><Briefcase className="w-5 h-5 text-blue-500" /> Recent Projects</h2>
+            <div className="bg-white rounded-2xl shadow p-4 space-y-3 min-h-[180px]">
               {recentActivity?.recentProjects && recentActivity.recentProjects.length > 0 ? (
                 recentActivity.recentProjects.map((project: RecentProject) => (
                   <div key={project.id} className="flex justify-between items-center py-2 border-b last:border-b-0">
@@ -307,7 +348,14 @@ const UserDashboard: React.FC = () => {
                       <div className="font-medium text-gray-800">{project.title}</div>
                       <div className="text-xs text-gray-400">{new Date(project.createdAt).toLocaleDateString()}</div>
                     </div>
-                    <span className="text-xs px-2 py-1 rounded bg-gray-100 text-gray-600 capitalize">{project.status}</span>
+                    <span className={`text-xs px-2 py-1 rounded font-semibold capitalize ${
+                      project.status === 'OPEN' ? 'bg-green-100 text-green-800' :
+                      project.status === 'IN_PROGRESS' ? 'bg-yellow-100 text-yellow-800' :
+                      project.status === 'COMPLETED' ? 'bg-blue-100 text-blue-800' :
+                      'bg-gray-100 text-gray-600'
+                    }`}>
+                      {project.status.replace('_', ' ').toLowerCase()}
+                    </span>
                   </div>
                 ))
               ) : (
@@ -316,8 +364,8 @@ const UserDashboard: React.FC = () => {
             </div>
           </div>
           <div>
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Recent Applications</h2>
-            <div className="bg-white rounded-2xl shadow p-4 space-y-3">
+            <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2"><FileText className="w-5 h-5 text-green-500" /> Recent Applications</h2>
+            <div className="bg-white rounded-2xl shadow p-4 space-y-3 min-h-[180px]">
               {recentActivity?.recentApplications && recentActivity.recentApplications.length > 0 ? (
                 recentActivity.recentApplications.map((application: RecentApplication) => (
                   <div key={application.id} className="flex justify-between items-center py-2 border-b last:border-b-0">
@@ -325,7 +373,14 @@ const UserDashboard: React.FC = () => {
                       <div className="font-medium text-gray-800">{application.projectTitle}</div>
                       <div className="text-xs text-gray-400">{new Date(application.createdAt).toLocaleDateString()}</div>
                     </div>
-                    <span className="text-xs px-2 py-1 rounded bg-gray-100 text-gray-600 capitalize">{application.status}</span>
+                    <span className={`text-xs px-2 py-1 rounded font-semibold capitalize ${
+                      application.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
+                      application.status === 'ACCEPTED' ? 'bg-green-100 text-green-800' :
+                      application.status === 'REJECTED' ? 'bg-red-100 text-red-800' :
+                      'bg-gray-100 text-gray-600'
+                    }`}>
+                      {application.status.replace('_', ' ').toLowerCase()}
+                    </span>
                   </div>
                 ))
               ) : (
@@ -334,7 +389,7 @@ const UserDashboard: React.FC = () => {
             </div>
           </div>
         </div>
-      </div>
+      </section>
     </div>
   );
 };

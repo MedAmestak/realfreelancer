@@ -5,7 +5,6 @@ import { motion } from 'framer-motion'
 import { Search, Filter, Star, Users, Briefcase, Award } from 'lucide-react'
 import Header from '../components/Header'
 import ProjectCard from '../components/ProjectCard'
-import FilterBar from '../components/FilterBar'
 import { useAuth } from '../src/contexts/AuthContext'
 import Link from 'next/link'
 
@@ -37,12 +36,6 @@ interface Project {
   updatedAt: string;
 }
 
-interface Stat {
-  icon: React.ElementType;
-  label: string;
-  value: number;
-}
-
 export default function HomePage() {
   const [projects, setProjects] = useState<Project[]>([])
   const [filteredProjects, setFilteredProjects] = useState<Project[]>([])
@@ -50,13 +43,13 @@ export default function HomePage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedSkills, setSelectedSkills] = useState<string[]>([])
   const [error, setError] = useState('')
-  const { user, getAuthToken } = useAuth();
+  const { getAuthToken } = useAuth();
 
   const fetchProjects = async () => {
     try {
       setError('');
       const headers: Record<string, string> = {};
-      const token = getAuthToken && getAuthToken();
+      const token = getAuthToken?.();
       if (token) headers['Authorization'] = `Bearer ${token}`;
       const response = await fetch('http://localhost:8080/api/projects', { headers });
       if (response.ok) {
@@ -238,7 +231,7 @@ export default function HomePage() {
               {!loading && filteredProjects.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                   {filteredProjects
-                    .filter(project => project.client && project.client.username)
+                    .filter(project => project.client?.username)
                     .map((project, index) => (
                       <motion.div
                         key={project.id}

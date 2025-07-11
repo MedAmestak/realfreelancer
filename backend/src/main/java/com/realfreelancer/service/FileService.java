@@ -50,7 +50,6 @@ public class FileService {
         Path filePath = userPath.resolve(filename);
         Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
 
-        // Return file URL
         return baseUrl + "/" + username + "/" + filename;
     }
 

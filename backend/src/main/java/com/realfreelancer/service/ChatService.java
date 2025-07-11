@@ -148,7 +148,7 @@ public class ChatService {
         );
     }
 
-    // Find conversation by ID
+    // Find conversation by ID 
     public java.util.Optional<Conversation> findConversationById(Long conversationId) {
         return conversationRepository.findById(conversationId);
     }
@@ -174,7 +174,6 @@ public class ChatService {
             .getContent().stream().map(this::toDTO).collect(java.util.stream.Collectors.toList());
     }
 
-    // Mark all messages as read in a conversation for a user
     public void markMessagesAsReadByConversation(Conversation conversation, User user) {
         List<Message> unread = messageRepository.findAllByConversationAndReceiverAndIsReadFalse(conversation, user);
         for (Message m : unread) {
@@ -183,13 +182,11 @@ public class ChatService {
         messageRepository.saveAll(unread);
     }
 
-    // Get user's conversations with conversationId as key
     public List<ConversationSummary> getUserConversationsWithId(User user, int page, int size) {
         List<ConversationParticipant> participants = conversationParticipantRepository.findByUser(user);
         return participants.stream()
             .map(cp -> {
                 Conversation c = cp.getConversation();
-                // Find the other participant
                 User other = c.getParticipants().stream()
                     .map(com.realfreelancer.model.ConversationParticipant::getUser)
                     .filter(u -> !u.getId().equals(user.getId()))

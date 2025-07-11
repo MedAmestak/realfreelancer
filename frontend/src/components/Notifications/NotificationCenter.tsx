@@ -1,22 +1,8 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Bell, 
-  X, 
-  Check, 
-  Trash2, 
-  Settings, 
-  MessageSquare, 
-  FileText, 
-  Star,
-  Award,
-  AlertCircle,
-  ExternalLink,
-  Users,
-  BellDot
-} from 'lucide-react';
+import { Bell, X, MessageSquare, FileText, Star, Award, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import SockJS from 'sockjs-client';
 
@@ -47,9 +33,6 @@ const NotificationCenter: React.FC<NotificationCenterProps> = () => {
   const [activeTab, setActiveTab] = useState<'all' | 'unread' | 'settings'>('all');
   const wsRef = useRef<WebSocket | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const [page, setPage] = useState(0);
-  const [hasMore, setHasMore] = useState(true);
-  const pageSize = 5;
   const listRef = useRef<HTMLDivElement>(null);
 
   const setupWebSocket = () => {
@@ -92,9 +75,16 @@ const NotificationCenter: React.FC<NotificationCenterProps> = () => {
   };
 
   // Helper to normalize notification API response
-  function normalizeNotificationsResponse(data: any): Notification[] {
-    if (Array.isArray(data)) return data;
-    if (data && Array.isArray(data.content)) return data.content;
+  function normalizeNotificationsResponse(data: unknown): Notification[] {
+    if (Array.isArray(data)) return data as Notification[];
+    if (
+      typeof data === 'object' &&
+      data !== null &&
+      'content' in data &&
+      Array.isArray((data as { content: unknown }).content)
+    ) {
+      return (data as { content: Notification[] }).content;
+    }
     return [];
   }
 
@@ -108,7 +98,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = () => {
         return;
       }
       setLoading(true);
-      const response = await fetch(`http://localhost:8080/api/notifications?page=0&size=50`,
+      const response = await fetch("http://localhost:8080/api/notifications?page=0&size=50",
         { headers: { 'Authorization': `Bearer ${token}` } });
       if (response.ok) {
         const data = await response.json();
@@ -389,9 +379,6 @@ const NotificationCenter: React.FC<NotificationCenterProps> = () => {
                     <div className="flex items-center justify-center py-4">
                       <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
                     </div>
-                  )}
-                  {!hasMore && notifications.length > 0 && (
-                    <div className="text-center text-xs text-gray-400 py-2">No more notifications</div>
                   )}
                 </AnimatePresence>
               ) : (

@@ -43,7 +43,7 @@ export default function ConversationPage() {
         {/* Sidebar: Conversation List */}
         <aside className="w-1/3 border-r bg-gray-50 p-4 overflow-y-auto">
           <ConversationList 
-            selectedConversation={selectedConversation} 
+            selectedConversation={selectedConversation}
             onSelect={(id) => router.push(`/chat/${id}`)}
             key={refreshConversations}
             refreshKey={refreshConversations}

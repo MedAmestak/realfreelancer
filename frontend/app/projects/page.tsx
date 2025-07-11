@@ -17,13 +17,13 @@ export default function ProjectsPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedSkills, setSelectedSkills] = useState<string[]>([])
   const [error, setError] = useState('')
-  const { user, getAuthToken } = useAuth()
+  const { getAuthToken } = useAuth()
 
   const fetchProjects = async () => {
     try {
       setError('')
       const headers: Record<string, string> = {}
-      const token = getAuthToken && getAuthToken()
+      const token = getAuthToken?.()
       if (token) headers['Authorization'] = `Bearer ${token}`
       const response = await fetch('http://localhost:8080/api/projects', { headers })
       if (response.ok) {
