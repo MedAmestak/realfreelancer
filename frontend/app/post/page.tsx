@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import React, { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { Plus, ArrowLeft } from 'lucide-react'
@@ -51,6 +51,13 @@ export default function PostProjectPage() {
     const value = parseInt(e.target.value) || 0;
     setFormData(prev => ({ ...prev, budget: value }));
   };
+
+  const handleSkillCheckboxChange = useCallback((skill: string) => () => {
+    handleSkillToggle(skill);
+  }, [handleSkillToggle]);
+  const handleDeadlineChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData(prev => ({ ...prev, deadline: e.target.value }));
+  }, []);
 
   const isFormValid =
     formData.title.trim().length > 0 &&
@@ -267,7 +274,7 @@ export default function PostProjectPage() {
                     id="deadline"
                     type="date"
                     value={formData.deadline}
-                    onChange={(e) => setFormData(prev => ({ ...prev, deadline: e.target.value }))}
+                    onChange={handleDeadlineChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     required
                   />
@@ -289,7 +296,7 @@ export default function PostProjectPage() {
                     <input
                       type="checkbox"
                       checked={formData.requiredSkills.includes(skill)}
-                      onChange={() => handleSkillToggle(skill)}
+                      onChange={handleSkillCheckboxChange(skill)}
                       className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
                     />
                     <span className="text-sm text-gray-700">{skill}</span>

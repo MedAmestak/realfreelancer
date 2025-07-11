@@ -57,7 +57,7 @@ public class Conversation {
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
     public Set<Message> getMessages() { return messages; }
-    public void setMessages(Set<Message> messages) { this.messages = messages; }
+    public void setMessages(Set<Message> messages) { this.messages = (messages == null) ? null : new java.util.HashSet<>(messages); }
     public Set<ConversationParticipant> getParticipants() { return participants; }
-    public void setParticipants(Set<ConversationParticipant> participants) { this.participants = participants; }
+    public void setParticipants(Set<ConversationParticipant> participants) { this.participants = (participants == null) ? null : new java.util.HashSet<>(participants); }
 } 

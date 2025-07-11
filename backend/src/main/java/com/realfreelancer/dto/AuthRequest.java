@@ -74,7 +74,7 @@ public class AuthRequest {
      * Sets skills with a defensive copy and makes it unmodifiable internally.
      */
     public void setSkills(Set<String> skills) {
-        this.skills = (skills == null) ? null : java.util.Collections.unmodifiableSet(new HashSet<>(skills));
+        this.skills = (skills == null) ? null : java.util.Collections.unmodifiableSet(new java.util.HashSet<>(skills));
     }
     
     public String getBio() {

@@ -204,6 +204,23 @@ const AdvancedSearch: React.FC = () => {
     setFilters(prev => ({ ...prev, [e.target.name]: Number(e.target.value) }));
   };
 
+  const handleSuggestionButtonClick = useCallback((suggestion: SearchSuggestion) => {
+    handleSuggestionClick(suggestion);
+  }, [handleSuggestionClick]);
+
+  const handleFilterRemove = useCallback((skill: string) => {
+    handleSkillToggle(skill);
+  }, [handleSkillToggle]);
+  const handleLocationRemove = useCallback(() => {
+    setFilters(prev => ({ ...prev, location: '' }));
+  }, []);
+  const handleExperienceLevelRemove = useCallback(() => {
+    setFilters(prev => ({ ...prev, experienceLevel: '' }));
+  }, []);
+  const handleProjectTypeRemove = useCallback(() => {
+    setFilters(prev => ({ ...prev, projectType: '' }));
+  }, []);
+
   const FilterChip = ({ label, onRemove }: { label: string; onRemove: () => void }) => (
     <motion.div
       initial={{ opacity: 0, scale: 0.8 }}
@@ -264,10 +281,10 @@ const AdvancedSearch: React.FC = () => {
                 exit={{ opacity: 0, y: -10 }}
                 className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-xl shadow-lg z-50 mt-2"
               >
-                {suggestions.map((suggestion, index) => (
+                {suggestions.map((suggestion) => (
                   <button
-                    key={`${suggestion.text}-${index}`}
-                    onClick={() => handleSuggestionClick(suggestion)}
+                    key={suggestion.text}
+                    onClick={() => handleSuggestionButtonClick(suggestion)}
                     className="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center"
                   >
                     <Search className="w-4 h-4 text-gray-400 mr-3" />
@@ -294,25 +311,25 @@ const AdvancedSearch: React.FC = () => {
                   <FilterChip
                     key={skill}
                     label={skill}
-                    onRemove={() => handleSkillToggle(skill)}
+                    onRemove={() => handleFilterRemove(skill)}
                   />
                 ))}
                 {filters.location && (
                   <FilterChip
                     label={filters.location}
-                    onRemove={() => setFilters(prev => ({ ...prev, location: '' }))}
+                    onRemove={handleLocationRemove}
                   />
                 )}
                 {filters.experienceLevel && (
                   <FilterChip
                     label={filters.experienceLevel}
-                    onRemove={() => setFilters(prev => ({ ...prev, experienceLevel: '' }))}
+                    onRemove={handleExperienceLevelRemove}
                   />
                 )}
                 {filters.projectType && (
                   <FilterChip
                     label={filters.projectType}
-                    onRemove={() => setFilters(prev => ({ ...prev, projectType: '' }))}
+                    onRemove={handleProjectTypeRemove}
                   />
                 )}
                 <button

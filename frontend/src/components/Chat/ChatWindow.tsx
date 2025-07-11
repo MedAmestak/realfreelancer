@@ -102,57 +102,20 @@ useEffect(() => {
   // WebSocket real-time updates
 useEffect(() => {
     if (!user || !conversationId) return;
-    const token = getAuthToken();
     socketRef.current = connectSocket({
-    onMessage: (msg) => {
-        try {
-        const message: Message = JSON.parse(msg.body);
-          // Only add if message is for this conversation
-        if (
-            (message.senderId === user.id && message.receiverId === conversationId) ||
-            (message.senderId === conversationId && message.receiverId === user.id)
-        ) {
-            setMessages((prev) => [...prev, message]);
-            // Notification for new message from other user
-            if (message.senderId === conversationId && !windowFocused) {
-                if (window.Notification && Notification.permission === 'granted') {
-                    new Notification('New message', { body: message.content });
-                }
-                if (audioRef.current) audioRef.current.play();
-            }
-        }
-        } catch {}
-    },
-    user: user.username,
-    token: token || '',
-    onTyping: (msg) => {
-      try {
-        const typing = JSON.parse(msg.body);
-        console.log('Received typing event:', typing);
-        if (
-          typing.senderId === conversationId &&
-          typing.receiverId === user.id &&
-          typing.typing
-        ) {
-          setIsOtherTyping(true);
-          if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-          typingTimeoutRef.current = setTimeout(() => setIsOtherTyping(false), 2000);
-        } else if (
-          typing.senderId === conversationId &&
-          typing.receiverId === user.id &&
-          !typing.typing
-        ) {
-          setIsOtherTyping(false);
-        }
-      } catch (error){
-        //console.error('Error processing typing', error);
-      }
-    },
+      onMessage: (msg) => {
+        fetchMessages();
+      },
+      user: user.username,
+      token: getAuthToken() || '',
+      onTyping: (msg) => {
+        // handle typing event
+      },
     });
     return () => {
-    if (socketRef.current) socketRef.current.disconnect();
+      if (socketRef.current) (socketRef.current as { disconnect: () => void }).disconnect();
     };
-}, [user, conversationId, getAuthToken]);
+  }, [user, conversationId, getAuthToken]);
 
 useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });

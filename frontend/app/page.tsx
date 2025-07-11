@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { Search, Filter, Star, Users, Briefcase, Award } from 'lucide-react'
 import Header from '../components/Header'
@@ -105,6 +105,20 @@ export default function HomePage() {
     { icon: Award, label: 'Total Badges', value: 234 },
   ]
 
+  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+  }, []);
+
+  const handleSkillChange = useCallback((skill: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.checked) {
+      setSelectedSkills(prev => [...prev, skill]);
+    } else {
+      setSelectedSkills(prev => prev.filter(s => s !== skill));
+    }
+  }, []);
+
+  const skeletonKeys = ['skel1', 'skel2', 'skel3', 'skel4', 'skel5', 'skel6'];
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
@@ -137,7 +151,7 @@ export default function HomePage() {
                   type="text"
                   placeholder="Search projects by title or description..."
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={handleSearchChange}
                   className="w-full pl-10 pr-4 py-3 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-white"
                 />
               </div>
@@ -182,13 +196,7 @@ export default function HomePage() {
                       <input
                         type="checkbox"
                         checked={selectedSkills.includes(skill)}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setSelectedSkills([...selectedSkills, skill])
-                          } else {
-                            setSelectedSkills(selectedSkills.filter(s => s !== skill))
-                          }
-                        }}
+                        onChange={handleSkillChange(skill)}
                         className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                       />
                       <span className="ml-2 text-sm text-gray-700">{skill}</span>
@@ -215,8 +223,8 @@ export default function HomePage() {
 
               {loading && (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                  {[...Array(6)].map((_, i) => (
-                    <div key={`skeleton-project-${i}`} className="bg-white rounded-lg shadow-md p-6 animate-pulse">
+                  {skeletonKeys.map((key) => (
+                    <div key={key} className="bg-white rounded-lg shadow-md p-6 animate-pulse">
                       <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
                       <div className="h-3 bg-gray-200 rounded w-full mb-2"></div>
                       <div className="h-3 bg-gray-200 rounded w-3/4 mb-4"></div>
