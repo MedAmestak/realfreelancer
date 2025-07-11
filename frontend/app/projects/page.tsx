@@ -17,7 +17,7 @@ export default function ProjectsPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedSkills, setSelectedSkills] = useState<string[]>([])
   const [error, setError] = useState('')
-  const { user, getAuthToken } = useAuth()
+  const { getAuthToken } = useAuth()
 
   const fetchProjects = async () => {
     try {

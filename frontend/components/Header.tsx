@@ -7,10 +7,12 @@ import { Menu, X, Bell, LogOut } from 'lucide-react'
 import { useAuth } from '../src/contexts/AuthContext'
 import UserMenu from './UserMenu'
 import NotificationCenter from '../src/components/Notifications/NotificationCenter'
+import { useRouter } from 'next/navigation';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const { user, logout } = useAuth()
+  const router = useRouter();
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen)
 
@@ -82,7 +84,7 @@ export default function Header() {
               <div className="pt-4 border-t border-gray-200">
                 {user ? (
                   <button
-                    onClick={logout}
+                    onClick={() => { logout(); router.push('/'); }}
                     className="flex items-center space-x-2 text-gray-600 hover:text-red-600 transition-colors"
                   >
                     <LogOut className="w-4 h-4" />

@@ -25,9 +25,6 @@ public class ProjectService {
             String search,
             Pageable pageable
     ) {
-        // This is a simplified implementation
-        // In a real application, you would use Specification or Criteria API
-        // for more complex filtering
         
         if (search != null && !search.trim().isEmpty()) {
             return projectRepository.findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase(

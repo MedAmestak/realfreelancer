@@ -33,7 +33,7 @@ public class ModerationService {
     public Report createReport(Report report) {
         // Check rate limiting
         if (!canUserReport(report.getReporter(), 
-            report.getReportedUserId() != null ? report.getReportedUserId() : report.getReportedProjectId(), 
+            report.getReportedUserId() != null ? report.getReportedUserId() : report.getReportedProjectId(),
             report.getReportedUserId() != null ? "USER" : "PROJECT")) {
             throw new RuntimeException("Rate limit exceeded. Please wait before submitting another report.");
         }
@@ -74,7 +74,7 @@ public class ModerationService {
             Report.ReportStatus reportStatus = Report.ReportStatus.valueOf(status.toUpperCase());
             report.setStatus(reportStatus);
             report.setAdminNotes(adminNotes);
-            report.setResolvedBy("admin"); // In real app, get from security context
+            report.setResolvedBy("admin");
             
             return reportRepository.save(report);
         } catch (IllegalArgumentException e) {
@@ -137,11 +137,9 @@ public class ModerationService {
     }
 
     public boolean canUserReport(User user, Long targetId, String targetType) {
-        // Check if user has reported this target recently (within 24 hours)
         LocalDateTime since = LocalDateTime.now().minusHours(24);
         Long recentReports = reportRepository.countRecentReportsByUser(user, since);
         
-        // Allow max 5 reports per day
         return recentReports < 5;
     }
 
@@ -170,8 +168,6 @@ public class ModerationService {
         }
 
         User user = userOpt.get();
-        // In a real application, you would update user status and suspension details
-        // For now, we'll just return a success message
         
         Map<String, Object> result = new HashMap<>();
         result.put("action", "USER_SUSPENDED");
@@ -228,8 +224,6 @@ public class ModerationService {
         }
 
         Project project = projectOpt.get();
-        // In a real application, you would set a hidden flag
-        // For now, we'll just return a success message
         
         Map<String, Object> result = new HashMap<>();
         result.put("action", "PROJECT_HIDDEN");

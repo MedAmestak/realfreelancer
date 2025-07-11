@@ -5,7 +5,6 @@ import { motion } from 'framer-motion'
 import { Search, Filter, Star, Users, Briefcase, Award } from 'lucide-react'
 import Header from '../components/Header'
 import ProjectCard from '../components/ProjectCard'
-import FilterBar from '../components/FilterBar'
 import { useAuth } from '../src/contexts/AuthContext'
 import Link from 'next/link'
 
@@ -37,12 +36,6 @@ interface Project {
   updatedAt: string;
 }
 
-interface Stat {
-  icon: React.ElementType;
-  label: string;
-  value: number;
-}
-
 export default function HomePage() {
   const [projects, setProjects] = useState<Project[]>([])
   const [filteredProjects, setFilteredProjects] = useState<Project[]>([])
@@ -50,7 +43,7 @@ export default function HomePage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedSkills, setSelectedSkills] = useState<string[]>([])
   const [error, setError] = useState('')
-  const { user, getAuthToken } = useAuth();
+  const { getAuthToken } = useAuth();
 
   const fetchProjects = async () => {
     try {

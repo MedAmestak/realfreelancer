@@ -27,7 +27,6 @@ public class ReviewService {
     public Review createReview(Review review) {
         Review savedReview = reviewRepository.save(review);
         
-        // Check and assign badges based on review count and rating
         if (review.getReviewedUser() != null) {
             checkAndAssignBadges(review.getReviewedUser());
         }

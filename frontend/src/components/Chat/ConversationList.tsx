@@ -31,7 +31,7 @@ const ConversationList: React.FC<ConversationListProps> = ({ selectedConversatio
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const socketRef = useRef<any>(null);
+  const socketRef = useRef<unknown>(null);
 
   const fetchConversations = async () => {
     setLoading(true);
@@ -78,7 +78,9 @@ const ConversationList: React.FC<ConversationListProps> = ({ selectedConversatio
       token: token || '',
     });
     return () => {
-      if (socketRef.current) socketRef.current.disconnect();
+      if (socketRef.current && typeof (socketRef.current as { disconnect: () => void }).disconnect === 'function') {
+        (socketRef.current as { disconnect: () => void }).disconnect();
+      }
     };
   }, [user, getAuthToken]);
 

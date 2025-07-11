@@ -237,7 +237,6 @@ public class ChatController {
         );
     }
 
-    // Create or fetch a conversation between the current user and another user (optionally for a project)
     @PostMapping("/conversation-with")
     public ResponseEntity<?> getOrCreateConversationWith(@RequestBody Map<String, Object> payload) {
         try {
@@ -260,9 +259,6 @@ public class ChatController {
             }
             User otherUser = otherUserOpt.get();
 
-            // Optionally handle projectId if needed in the future
-            // Long projectId = payload.get("projectId") instanceof Number ? ((Number) payload.get("projectId")).longValue() : null;
-
             Conversation conversation = chatService.findOrCreatePrivateConversation(currentUser, otherUser);
             return ResponseEntity.ok(Map.of("conversationId", conversation.getId()));
         } catch (Exception e) {
@@ -272,7 +268,6 @@ public class ChatController {
     }
 }
 
-// DTO for typing indicator
 class TypingIndicatorDTO {
     private Long senderId;
     private String senderUsername;
