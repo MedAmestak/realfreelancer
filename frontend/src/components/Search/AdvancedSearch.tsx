@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Search, 
@@ -238,6 +238,33 @@ const AdvancedSearch: React.FC = () => {
     </motion.div>
   );
 
+  // Memoized handlers for removing skills from filters
+  const filterRemoveHandlers = useMemo(() => {
+    const handlers: { [skill: string]: () => void } = {};
+    filters.skills.forEach(skill => {
+      handlers[skill] = () => handleFilterRemove(skill);
+    });
+    return handlers;
+  }, [filters.skills, handleFilterRemove]);
+
+  // Memoized handlers for suggestion button clicks
+  const suggestionClickHandlers = useMemo(() => {
+    const handlers: { [text: string]: () => void } = {};
+    suggestions.forEach(suggestion => {
+      handlers[suggestion.text] = () => handleSuggestionButtonClick(suggestion);
+    });
+    return handlers;
+  }, [suggestions, handleSuggestionButtonClick]);
+
+  // Memoized handlers for trending skill clicks
+  const trendingSkillHandlers = useMemo(() => {
+    const handlers: { [skill: string]: () => void } = {};
+    trendingSkills.forEach(skillObj => {
+      handlers[skillObj.skill] = () => handleSkillClick(skillObj.skill);
+    });
+    return handlers;
+  }, [trendingSkills, handleSkillClick]);
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -284,7 +311,7 @@ const AdvancedSearch: React.FC = () => {
                 {suggestions.map((suggestion) => (
                   <button
                     key={suggestion.text}
-                    onClick={() => handleSuggestionButtonClick(suggestion)}
+                    onClick={suggestionClickHandlers[suggestion.text]}
                     className="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center"
                   >
                     <Search className="w-4 h-4 text-gray-400 mr-3" />
@@ -311,7 +338,7 @@ const AdvancedSearch: React.FC = () => {
                   <FilterChip
                     key={skill}
                     label={skill}
-                    onRemove={() => handleFilterRemove(skill)}
+                    onRemove={filterRemoveHandlers[skill]}
                   />
                 ))}
                 {filters.location && (
@@ -471,7 +498,7 @@ const AdvancedSearch: React.FC = () => {
                     key={skill.skill}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    onClick={() => handleSkillClick(skill.skill)}
+                    onClick={trendingSkillHandlers[skill.skill]}
                     className="px-3 py-1 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-full text-sm font-medium hover:shadow-md transition-all"
                   >
                     {skill.skill}

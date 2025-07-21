@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useCallback, useState } from 'react'
+import React, { useCallback, useState, useMemo } from 'react'
 import { Filter, X } from 'lucide-react'
 
 interface FilterBarProps {
@@ -47,6 +47,22 @@ export default function FilterBar({ selectedSkills, onSkillsChange }: FilterBarP
     setIsOpen(false);
   }, []);
 
+  // Memoized handlers for each skill
+  const toggleSkillHandlers = useMemo(() => {
+    const handlers: { [skill: string]: () => void } = {};
+    commonSkills.forEach(skill => {
+      handlers[skill] = () => handleToggleSkill(skill);
+    });
+    return handlers;
+  }, [handleToggleSkill]);
+  const selectedSkillHandlers = useMemo(() => {
+    const handlers: { [skill: string]: () => void } = {};
+    selectedSkills.forEach(skill => {
+      handlers[skill] = () => handleToggleSkill(skill);
+    });
+    return handlers;
+  }, [selectedSkills, handleToggleSkill]);
+
   // The filter content (used in both modal and sidebar)
   const filterContent = (
     <div className="w-full max-w-xs mx-auto md:max-w-none md:w-full">
@@ -77,7 +93,7 @@ export default function FilterBar({ selectedSkills, onSkillsChange }: FilterBarP
               >
                 {skill}
                 <button
-                  onClick={() => handleToggleSkill(skill)}
+                  onClick={selectedSkillHandlers[skill]}
                   className="ml-1 hover:text-red-600"
                 >
                   <X className="w-3 h-3" />
@@ -100,7 +116,7 @@ export default function FilterBar({ selectedSkills, onSkillsChange }: FilterBarP
               <input
                 type="checkbox"
                 checked={selectedSkills.includes(skill)}
-                onChange={() => handleToggleSkill(skill)}
+                onChange={toggleSkillHandlers[skill]}
                 className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
               />
               <span className="text-sm text-gray-700">{skill}</span>
