@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { Search, Filter, Star, Users, Briefcase, Award } from 'lucide-react'
 import Header from '../components/Header'
@@ -117,6 +117,21 @@ export default function HomePage() {
     }
   }, []);
 
+  // Memoized handlers for each skill
+  const skillChangeHandlers = useMemo(() => {
+    const handlers: { [skill: string]: (e: React.ChangeEvent<HTMLInputElement>) => void } = {};
+    [
+      'JavaScript', 'TypeScript', 'React', 'Vue', 'Angular', 'Node.js',
+      'Python', 'Java', 'C#', 'PHP', 'Ruby', 'Go', 'Rust', 'HTML', 'CSS', 'Sass', 'Tailwind CSS', 'Bootstrap',
+      'MongoDB', 'PostgreSQL', 'MySQL', 'Redis', 'Docker', 'Kubernetes', 'AWS', 'Azure', 'Google Cloud',
+      'Git', 'GitHub', 'CI/CD', 'Testing', 'DevOps', 'UI/UX', 'Design', 'Mobile', 'iOS', 'Android',
+      'Machine Learning', 'AI', 'Data Science', 'Blockchain'
+    ].forEach(skill => {
+      handlers[skill] = handleSkillChange(skill);
+    });
+    return handlers;
+  }, [handleSkillChange]);
+
   const skeletonKeys = ['skel1', 'skel2', 'skel3', 'skel4', 'skel5', 'skel6'];
 
   return (
@@ -196,7 +211,7 @@ export default function HomePage() {
                       <input
                         type="checkbox"
                         checked={selectedSkills.includes(skill)}
-                        onChange={handleSkillChange(skill)}
+                        onChange={skillChangeHandlers[skill]}
                         className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                       />
                       <span className="ml-2 text-sm text-gray-700">{skill}</span>

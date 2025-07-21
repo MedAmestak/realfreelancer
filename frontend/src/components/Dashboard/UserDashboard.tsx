@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../../contexts/AuthContext';
 import { 
@@ -156,6 +156,15 @@ const UserDashboard: React.FC = () => {
     window.location.href = '/chat';
   }, []);
 
+  // Memoized navigation handlers
+  const navHandlers = useMemo(() => ({
+    post: () => window.location.href = '/post',
+    projects: handleNavigateToProjects,
+    chat: handleNavigateToChat,
+    browse: () => window.location.href = '/projects',
+    search: () => window.location.href = '/search',
+  }), [handleNavigateToProjects, handleNavigateToChat]);
+
   const StatCard = ({ title, value, icon: Icon, color, trend }: StatCardProps) => (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -262,19 +271,19 @@ const UserDashboard: React.FC = () => {
             <p className="text-lg md:text-xl text-blue-100 mb-4">Your freelance business at a glance.</p>
             <div className="flex gap-3 mt-4">
               <button
-                onClick={() => window.location.href = '/post'}
+                onClick={navHandlers.post}
                 className="bg-white/90 hover:bg-white text-blue-700 font-semibold px-5 py-2 rounded-lg shadow transition flex items-center gap-2"
               >
                 <Briefcase className="w-5 h-5" /> Post Project
               </button>
               <button
-                onClick={() => window.location.href = '/projects'}
+                onClick={navHandlers.browse}
                 className="bg-white/90 hover:bg-white text-purple-700 font-semibold px-5 py-2 rounded-lg shadow transition flex items-center gap-2"
               >
                 <Search className="w-5 h-5" /> Browse Projects
               </button>
               <button
-                onClick={() => window.location.href = '/chat'}
+                onClick={navHandlers.chat}
                 className="bg-white/90 hover:bg-white text-green-700 font-semibold px-5 py-2 rounded-lg shadow transition flex items-center gap-2"
               >
                 <MessageSquare className="w-5 h-5" /> Messages

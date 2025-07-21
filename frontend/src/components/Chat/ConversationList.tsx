@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { connectSocket } from '../../utils/socket';
@@ -94,6 +94,15 @@ const ConversationList: React.FC<ConversationListProps> = ({ selectedConversatio
     handleSelect(id);
   }, [handleSelect]);
 
+  // Memoized handlers for each conversation id
+  const listItemClickHandlers = useMemo(() => {
+    const handlers: { [id: number]: () => void } = {};
+    conversations.forEach(conv => {
+      handlers[conv.id] = () => handleListItemClick(conv.id);
+    });
+    return handlers;
+  }, [conversations, handleListItemClick]);
+
   if (loading) return <div className="text-center text-gray-400 py-8">Loading...</div>;
   if (error) return <div className="text-center text-red-500 py-8">{error}</div>;
   if (conversations.length === 0) return <div className="text-center text-gray-400 py-8">No conversations yet.</div>;
@@ -109,7 +118,7 @@ const ConversationList: React.FC<ConversationListProps> = ({ selectedConversatio
             <li
               key={conv.id}
               className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition border hover:bg-gray-100 ${selectedConversation === conv.id ? 'bg-blue-50 border-blue-400' : isUnread ? 'bg-blue-100 border-blue-300' : 'bg-white border-transparent'}`}
-              onClick={() => handleListItemClick(conv.id)}
+              onClick={listItemClickHandlers[conv.id]}
             >
               <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-lg font-bold text-gray-500">
                 {conv.avatarUrl ? (
