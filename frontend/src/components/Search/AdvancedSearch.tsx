@@ -524,7 +524,7 @@ const AdvancedSearch: React.FC = () => {
                       key={result.id}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: result.id * 0.1 }}
+                      transition={{ duration: 0.4 }}
                       className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
                     >
                       <h4 className="text-lg font-semibold text-gray-900 mb-2">{result.title}</h4>

@@ -179,12 +179,12 @@ export default function HomePage() {
       <section className="py-12 bg-white">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {stats.map((stat, index) => (
+            {stats.map((stat) => (
               <motion.div
                 key={stat.label}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
+                transition={{ duration: 0.6 }}
                 className="text-center"
               >
                 <stat.icon className="w-8 h-8 mx-auto mb-2 text-blue-600" />
@@ -255,12 +255,12 @@ export default function HomePage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                   {filteredProjects
                     .filter(project => project.client?.username)
-                    .map((project, index) => (
+                    .map((project) => (
                       <motion.div
                         key={project.id}
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.4, delay: index * 0.1 }}
+                        transition={{ duration: 0.4 }}
                         className="h-full"
                       >
                         <Link href={`/projects/${project.client.username}/${project.id}`} passHref className="h-full block">
