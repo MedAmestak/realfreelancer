@@ -175,18 +175,6 @@ public class AuthController {
                                 .body("Unexpected error: " + e.getMessage());
         }
     }
-    
-
-    @GetMapping("/validate")
-    public ResponseEntity<?> validateToken(@RequestHeader("Authorization") String token) {
-        if (token != null && token.startsWith("Bearer ")) {
-            String jwt = token.substring(7);
-            if (jwtTokenProvider.validateToken(jwt)) {
-                return ResponseEntity.ok(true);
-            }
-        }
-        return ResponseEntity.ok(false);
-    }
 
     @PutMapping("/profile")
     public ResponseEntity<?> updateCurrentUser(@RequestBody java.util.Map<String, Object> updates) {
