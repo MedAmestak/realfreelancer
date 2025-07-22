@@ -7,6 +7,7 @@ import Header from '../components/Header'
 import ProjectCard from '../components/ProjectCard'
 import { useAuth } from '../src/contexts/AuthContext'
 import Link from 'next/link'
+import axiosInstance from '../src/utils/axiosInstance'
 
 interface Project {
   id: number;
@@ -48,17 +49,8 @@ export default function HomePage() {
   const fetchProjects = async () => {
     try {
       setError('');
-      const headers: Record<string, string> = {};
-      const token = getAuthToken?.();
-      if (token) headers['Authorization'] = `Bearer ${token}`;
-      const response = await fetch('http://localhost:8080/api/projects', { headers });
-      if (response.ok) {
-        const data = await response.json();
-        setProjects(data.content || data)
-      } else {
-        setError('Failed to fetch projects: Server error');
-        setProjects([]);
-      }
+      const response = await axiosInstance.get('/projects');
+      setProjects(response.data.content || response.data);
     } catch (error) {
       setError('Error fetching projects: Network error');
       setProjects([]);

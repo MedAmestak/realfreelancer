@@ -50,7 +50,7 @@ docker-compose logs -f
 
 - **Frontend**: http://localhost:3000
 - **Backend API**: http://localhost:8080
-- **H2 Database Console**: http://localhost:8080/h2-console
+- **PostgreSQL Database**: PostgreSQL
 
 ## 🔧 Environment Configuration
 
@@ -76,11 +76,11 @@ NEXT_PUBLIC_API_URL=http://localhost:8080
 - JWT authentication
 
 ### 🚧 Coming Soon (Phase 2)
-- Project applications
-- Real-time chat
-- Reviews and badges
-- File uploads
-- Advanced filtering
+- ✅ Project applications
+- ✅ Real-time chat
+- 🚧 Reviews and badges
+- 🚧 File uploads
+- 🚧 Advanced filtering
 
 ## 🛠️ Development
 
@@ -130,7 +130,7 @@ realfreelancer/
 ├── docs/                   # Documentation
 ├── setup.sh               # Quick setup script
 └── docker-compose.yml     # Docker setup
-```
+````````````
 
 ## 🐛 Troubleshooting
 
@@ -158,7 +158,6 @@ realfreelancer/
    ```
 
 4. **Database connection issues**
-   - Check if H2 console is accessible at http://localhost:8080/h2-console
    - Verify database credentials in `.env` file
 
 ### Getting Help

@@ -9,6 +9,7 @@ import FilterBar from '../../components/FilterBar'
 import { useAuth } from '../../src/contexts/AuthContext'
 import Link from 'next/link'
 import { Project } from '../../types/project' // Import the Project type
+import axiosInstance from '../../src/utils/axiosInstance';
 
 export default function ProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([])
@@ -22,22 +23,14 @@ export default function ProjectsPage() {
   const fetchProjects = async () => {
     try {
       setError('')
-      const headers: Record<string, string> = {}
-      const token = getAuthToken?.()
-      if (token) headers['Authorization'] = `Bearer ${token}`
-      const response = await fetch('http://localhost:8080/api/projects', { headers })
-      if (response.ok) {
-        const data = await response.json()
-        setProjects(data.content || data)
-      } else if (response.status === 401) {
+      const response = await axiosInstance.get('/projects');
+      setProjects(response.data.content || response.data);
+    } catch (error: any) {
+      if (error.response?.status === 401) {
         setError('You must be logged in to view projects.')
-        setProjects([])
       } else {
         setError('Failed to fetch projects: Server error')
-        setProjects([])
       }
-    } catch (error) {
-      setError('Error fetching projects: Network error')
       setProjects([])
     } finally {
       setLoading(false)

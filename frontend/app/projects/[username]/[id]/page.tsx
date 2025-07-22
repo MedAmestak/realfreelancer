@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Calendar, DollarSign, User, Tag, ShieldCheck, Briefcase, MessageSquare, Send } from 'lucide-react';
 import { Project } from '@/types/project'; // Assuming you have this type defined
 import Header from '@/components/Header';
+import axiosInstance from '../../../../src/utils/axiosInstance';
 
 export default function ProjectDetailPage({ params }: { params: { id: string } }) {
   const { id } = params;
@@ -15,25 +16,15 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
 
   useEffect(() => {
     const fetchProject = async () => {
-      const token = getAuthToken();
-      const headers: Record<string, string> = {};
-      if (token) headers['Authorization'] = `Bearer ${token}`;
       try {
-        const response = await fetch(`http://localhost:8080/api/projects/${id}`, {
-          headers,
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          setProject(data);
-        } else if (response.status === 404) {
+        const response = await axiosInstance.get(`/projects/${id}`);
+        setProject(response.data);
+      } catch (err: any) {
+        if (err.response?.status === 404) {
           setError("Project not found.");
         } else {
-          const errorText = await response.text();
-          setError(`Failed to load project: ${errorText}`);
+          setError(`Failed to load project: ${err.response?.data?.message || err.message}`);
         }
-      } catch (err) {
-        setError("An error occurred while fetching the project.");
         console.error(err);
       } finally {
         setLoading(false);
@@ -41,7 +32,7 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
     };
 
     fetchProject();
-  }, [id, getAuthToken]);
+  }, [id]);
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return 'N/A';
@@ -116,29 +107,26 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
                     <button
                       onClick={async () => {
                         if (!project?.client?.id) return;
-                        const token = getAuthToken();
-                        if (!token) return;
+                        try {
                         // Call backend to get or create conversation
-                        const res = await fetch('http://localhost:8080/api/chat/conversation-with', {
-                          method: 'POST',
-                          headers: {
-                            'Authorization': `Bearer ${token}`,
-                            'Content-Type': 'application/json',
-                          },
-                          body: JSON.stringify({ userId: project.client.id, projectId: project.id }),
+                          const convRes = await axiosInstance.post('/chat/conversation-with', { 
+                            userId: project.client.id, 
+                            projectId: project.id 
                         });
-                        if (!res.ok) return;
-                        const { conversationId } = await res.json();
+                          
+                          const { conversationId } = convRes.data;
+
                         // Send auto-message
-                        await fetch('http://localhost:8080/api/chat/send', {
-                          method: 'POST',
-                          headers: {
-                            'Authorization': `Bearer ${token}`,
-                            'Content-Type': 'application/json',
-                          },
-                          body: JSON.stringify({ conversationId, content: 'Hi, I am interested in your project!' })
+                          await axiosInstance.post('/chat/send', { 
+                            conversationId, 
+                            content: 'Hi, I am interested in your project!' 
                         });
+
                         window.location.href = `/chat/${conversationId}`;
+                        } catch (error) {
+                          console.error("Failed to start conversation", error);
+                          // Optionally, show an error to the user
+                        }
                       }}
                       className="mt-6 w-full flex items-center justify-center bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold"
                     >

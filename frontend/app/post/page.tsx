@@ -6,6 +6,7 @@ import { motion } from 'framer-motion'
 import { Plus, ArrowLeft } from 'lucide-react'
 import Header from '../../components/Header'
 import { useAuth } from '../../src/contexts/AuthContext'
+import axiosInstance from '../../src/utils/axiosInstance'
 
 export default function PostProjectPage() {
   const router = useRouter()
@@ -65,7 +66,7 @@ export default function PostProjectPage() {
     formData.deadline &&
     !loading;
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setLoading(true)
     setError('')
@@ -89,49 +90,18 @@ export default function PostProjectPage() {
     deadlineDate.setHours(23, 59, 59)
 
     try {
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json'
-      }
-      
-      const token = getAuthToken?.();
-      if (token) {
-        headers.Authorization = `Bearer ${token}`;
-      }
-
       const projectData = {
         ...formData,
         deadline: deadlineDate.toISOString()
       }
 
-      const response = await fetch('http://localhost:8080/api/projects', {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(projectData)
-      })
-
-      if (response.ok) {
+      await axiosInstance.post('/projects', projectData)
         router.push('/dashboard')
-      } else {
-        let errMsg = 'Bad Request';
-        let fieldErrs: Record<string, string> = {};
-        try {
-          const data = await response.json();
-          if (typeof data === 'object' && data !== null) {
-            if (Array.isArray(data)) {
-              errMsg = data.join(', ');
-            } else {
-              fieldErrs = data;
-              errMsg = Object.values(data).join(' ');
-            }
-          } else if (typeof data === 'string') {
-            errMsg = data;
-          }
-        } catch {}
+    } catch (err: any) {
+      const errMsg = err.response?.data?.message || 'An error occurred.';
+      const fieldErrs = err.response?.data?.errors || {};
         setError(errMsg);
         setFieldErrors(fieldErrs);
-      }
-    } catch (err) {
-      setError('Network error. Please try again.');
     } finally {
       setLoading(false);
     }

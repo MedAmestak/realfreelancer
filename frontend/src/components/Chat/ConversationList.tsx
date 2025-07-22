@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react'
 import { useAuth } from '../../contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { connectSocket } from '../../utils/socket';
+import axiosInstance from '../../utils/axiosInstance';
 
 interface ConversationListProps {
   selectedConversation: number | null;
@@ -37,12 +38,8 @@ const ConversationList: React.FC<ConversationListProps> = ({ selectedConversatio
     setLoading(true);
     setError(null);
     try {
-      const token = getAuthToken();
-      const res = await fetch('http://localhost:8080/api/chat/conversations?page=0&size=20', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (!res.ok) throw new Error('Failed to fetch conversations');
-      const data: ConversationApi[] = await res.json();
+      const response = await axiosInstance.get('/chat/conversations?page=0&size=20');
+      const data: ConversationApi[] = response.data;
       setConversations(data.map((item) => ({
         id: item.conversationId,
         username: item.username,
@@ -50,12 +47,8 @@ const ConversationList: React.FC<ConversationListProps> = ({ selectedConversatio
         lastMessageTime: item.lastMessageTime,
         unreadCount: item.unreadCount,
       })));
-    } catch (e: unknown) {
-      if (e instanceof Error) {
-        setError(e.message);
-      } else {
-        setError('An unknown error occurred');
-      }
+    } catch (e: any) {
+      setError(e.response?.data?.message || 'An unknown error occurred');
     } finally {
       setLoading(false);
     }

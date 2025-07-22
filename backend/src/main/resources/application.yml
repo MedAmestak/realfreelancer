@@ -22,8 +22,10 @@ server:
   port: ${SERVER_PORT:8080}
   address: ${SERVER_ADDRESS:0.0.0.0}
 jwt:
-  secret: ${JWT_SECRET:8fa8f90911ec227d330d36a30d4eabdcec6de84fc2447e23999914e2bae22608}
-  expiration: 86400000 # 24 hours
+  secret: ${JWT_SECRET_KEY:4b2e1f8e2c9a4d8b8e7c6f5a3b2c1d0e9f8a7b6c5d4e3f2a1b0c9d8e7f6a5b4c} # Secure fallback for local/dev
+  expiration: 900000 # 15 minutes
+  refresh-expiration: 604800000 # 7 days
+  refresh-cookie-name: "refreshToken"
 cors:
   allowed-origins: ${ALLOWED_ORIGINS:http://localhost:3000}
   allowed-methods: GET,POST,PUT,DELETE,OPTIONS
