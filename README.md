@@ -16,7 +16,7 @@ RealFreelancer is a modern, full-stack freelance platform designed to connect de
 **[➡️ Live Demo (Coming Soon)](#)**
 
 *A screenshot or GIF of the application will be placed here.*
-
+![Demo Screenshot](./freelancerscreen.png)
 </div>
 
 ---
