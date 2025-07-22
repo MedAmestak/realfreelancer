@@ -5,8 +5,11 @@ import com.realfreelancer.dto.AuthRequest;
 import com.realfreelancer.dto.AuthResponse;
 import com.realfreelancer.model.User;
 import com.realfreelancer.service.UserService;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -22,6 +25,7 @@ import com.realfreelancer.dto.AuthUserDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.realfreelancer.service.AnalyticsService;
+import java.util.Map;
 
 import java.time.LocalDateTime;
 
@@ -43,6 +47,9 @@ public class AuthController {
 
     @Autowired
     private AnalyticsService analyticsService;
+
+    @Value("${jwt.refresh-cookie-name}")
+    private String refreshTokenCookieName;
 
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@Validated(AuthRequest.Registration.class) @RequestBody AuthRequest authRequest) {
@@ -70,7 +77,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> authenticateUser(@Validated(AuthRequest.Login.class) @RequestBody AuthRequest authRequest) {
+    public ResponseEntity<?> authenticateUser(@Validated(AuthRequest.Login.class) @RequestBody AuthRequest authRequest, HttpServletResponse response) {
         logger.info("Authenticating user with email: {}", authRequest.getEmail());
         
         try {
@@ -81,15 +88,23 @@ public class AuthController {
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
             UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-            String token = jwtTokenProvider.generateToken(authentication);
+            String accessToken = jwtTokenProvider.generateToken(authentication);
+            String refreshToken = jwtTokenProvider.generateRefreshToken(userDetails.getUsername());
 
             User user = userService.findByEmail(authRequest.getEmail())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + authRequest.getEmail()));
+            
+            Cookie refreshTokenCookie = new Cookie(refreshTokenCookieName, refreshToken);
+            refreshTokenCookie.setHttpOnly(true);
+            refreshTokenCookie.setPath("/api/auth");
+            refreshTokenCookie.setMaxAge(7 * 24 * 60 * 60); // 7 days
+            // refreshTokenCookie.setSecure(true); // true in production
+            response.addCookie(refreshTokenCookie);
 
-            AuthResponse authResponse = new AuthResponse(token, user.getId(), user.getUsername(), user.getEmail());
+            AuthResponse authResponse = new AuthResponse(accessToken, user.getId(), user.getUsername(), user.getEmail());
             authResponse.setGithubLink(user.getGithubLink());
             authResponse.setReputationPoints(user.getReputationPoints());
-            authResponse.setExpiresAt(LocalDateTime.ofInstant(jwtTokenProvider.getExpirationDateFromToken(token).toInstant(), java.time.ZoneId.systemDefault()));
+            authResponse.setExpiresAt(LocalDateTime.ofInstant(jwtTokenProvider.getExpirationDateFromToken(accessToken).toInstant(), java.time.ZoneId.systemDefault()));
             return ResponseEntity.ok(authResponse);
 
         } catch (UsernameNotFoundException e) {
@@ -101,19 +116,66 @@ public class AuthController {
         }
     }
 
+    @PostMapping("/refresh")
+    public ResponseEntity<?> refreshToken(@CookieValue(required = false) String refreshToken) {
+        if (refreshToken == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Refresh token not found.");
+        }
+
+        try {
+            if (jwtTokenProvider.validateToken(refreshToken)) {
+                String email = jwtTokenProvider.getUsernameFromToken(refreshToken);
+                User user = userService.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException("User not found"));
+                String newAccessToken = jwtTokenProvider.generateToken(email);
+
+                AuthResponse authResponse = new AuthResponse(newAccessToken, user.getId(), user.getUsername(), user.getEmail());
+                authResponse.setExpiresAt(LocalDateTime.ofInstant(jwtTokenProvider.getExpirationDateFromToken(newAccessToken).toInstant(), java.time.ZoneId.systemDefault()));
+                
+                return ResponseEntity.ok(authResponse);
+            } else {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid refresh token.");
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred during token refresh.");
+        }
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(HttpServletResponse response) {
+        Cookie cookie = new Cookie(refreshTokenCookieName, null);
+        cookie.setPath("/api/auth");
+        cookie.setHttpOnly(true);
+        cookie.setMaxAge(0); // Expires immediately
+        response.addCookie(cookie);
+        return ResponseEntity.ok("Logout successful");
+    }
+
     @GetMapping("/profile")
     public ResponseEntity<?> getCurrentUser() {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication == null || !authentication.isAuthenticated()) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Not authenticated");
+            }
+    
             String email = authentication.getName();
             User user = userService.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-            java.util.Map<String, Object> stats = analyticsService.getUserProfileStats(user);
-            return ResponseEntity.ok(new AuthUserDTO(user, stats));
+                    .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+    
+            Map<String, Object> stats = analyticsService.getUserProfileStats(user);
+    
+            AuthUserDTO dto = new AuthUserDTO(user, stats);
+            return ResponseEntity.ok(dto);
+        } catch (UsernameNotFoundException e) {
+            System.err.println("User not found: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User not found");
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Error fetching user profile: " + e.getMessage());
+            e.printStackTrace();  // Print full stack trace for debugging
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                .body("Unexpected error: " + e.getMessage());
         }
     }
+    
 
     @GetMapping("/validate")
     public ResponseEntity<?> validateToken(@RequestHeader("Authorization") String token) {

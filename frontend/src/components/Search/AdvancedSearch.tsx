@@ -13,6 +13,7 @@ import {
   TrendingUp,
   Sparkles
 } from 'lucide-react';
+import axiosInstance from '../../utils/axiosInstance';
 
 interface SearchFilters {
   query: string;
@@ -91,28 +92,26 @@ const AdvancedSearch: React.FC = () => {
 
   const fetchTrendingSkills = async () => {
     try {
-      const response = await fetch('/api/search/trending-skills?limit=8');
-      if (response.ok) {
-        const data = await response.json();
-        setTrendingSkills(data);
+      const response = await axiosInstance.get('/search/trending-skills?limit=8');
+      if (response.data) {
+        setTrendingSkills(response.data);
       }
     } catch (error) {
-      console.error('Error fetching trending skills: Network error');
+      console.error('Error fetching trending skills: Network error', error);
     }
   };
 
   const fetchSuggestions = async (query: string) => {
     try {
-      const response = await fetch(`/api/search/suggestions?query=${encodeURIComponent(query)}`);
-      if (response.ok) {
-        const data = await response.json();
-        setSuggestions(data.map((suggestion: string) => ({
+      const response = await axiosInstance.get(`/search/suggestions?query=${encodeURIComponent(query)}`);
+      if (response.data) {
+        setSuggestions(response.data.map((suggestion: string) => ({
           text: suggestion,
           type: 'skill' as const
         })));
       }
     } catch (error) {
-      console.error('Error fetching suggestions: Network error');
+      console.error('Error fetching suggestions: Network error', error);
     }
   };
 
@@ -144,13 +143,12 @@ const AdvancedSearch: React.FC = () => {
         }
       });
 
-      const response = await fetch(`/api/search/advanced?${params.toString()}`);
-      if (response.ok) {
-        const data = await response.json();
-        setSearchResults(data.content || []);
+      const response = await axiosInstance.get(`/search/advanced?${params.toString()}`);
+      if (response.data) {
+        setSearchResults(response.data.content || []);
       }
     } catch (error) {
-      console.error('Error performing search: Network error');
+      console.error('Error performing search: Network error', error);
     } finally {
       setLoading(false);
     }

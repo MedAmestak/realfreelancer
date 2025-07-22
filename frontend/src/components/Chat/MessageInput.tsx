@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
+import axiosInstance from '../../utils/axiosInstance';
 
 interface MessageInputProps {
   conversationId: number | null;
@@ -26,24 +27,11 @@ const MessageInput: React.FC<MessageInputProps> = ({ conversationId, projectId, 
     setLoading(true);
     setError(null);
     try {
-      const token = getAuthToken();
-      const res = await fetch('http://localhost:8080/api/chat/send', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ conversationId, content: message })
-      });
-      if (!res.ok) throw new Error('Failed to send message');
+      await axiosInstance.post('/chat/send', { conversationId, content: message });
       setMessage('');
       if (onMessageSent) onMessageSent();
-    } catch (e: unknown) {
-      if (e instanceof Error) {
-        setError(e.message);
-      } else {
-        setError('An unknown error occurred');
-      }
+    } catch (e: any) {
+      setError(e.response?.data?.message || 'An unknown error occurred');
     } finally {
       setLoading(false);
     }

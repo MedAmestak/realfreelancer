@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import axiosInstance from '../../src/utils/axiosInstance';
 
 export default function ChatRootRedirect() {
   const router = useRouter();
@@ -9,16 +10,18 @@ export default function ChatRootRedirect() {
 
   useEffect(() => {
     // Try to fetch the first conversation and redirect
-    fetch('http://localhost:8080/api/chat/conversations?page=0&size=1', {
-      headers: { 'Authorization': typeof window !== 'undefined' ? `Bearer ${localStorage.getItem('token')}` : '' }
-    })
-      .then(res => res.ok ? res.json() : [])
-      .then((data) => {
+    axiosInstance.get('/chat/conversations?page=0&size=1')
+      .then(res => {
+        const data = res.data;
         if (data && data.length > 0 && data[0].conversationId) {
           router.replace(`/chat/${data[0].conversationId}`);
         } else {
           setNoConversations(true);
         }
+      })
+      .catch(err => {
+          console.error("Failed to fetch conversations for redirect", err);
+          setNoConversations(true);
       })
       .finally(() => setLoading(false));
   }, [router]);

@@ -18,6 +18,7 @@ import {
   Award,
   Search
 } from 'lucide-react';
+import axiosInstance from '../../utils/axiosInstance';
 
 interface DashboardStats {
   projectsPosted: number;
@@ -111,14 +112,8 @@ const UserDashboard: React.FC = () => {
     
     setDashboardLoading(true);
     try {
-      const token = getAuthToken();
-      const response = await fetch('http://localhost:8080/api/dashboard/user', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      if (response.ok) {
-        const data = await response.json();
+      const response = await axiosInstance.get('/dashboard/user');
+      const data = response.data;
         setStats(data.analytics || null);
         setQuickStats(data.quickStats || null);
         setRecentActivity({
@@ -126,17 +121,12 @@ const UserDashboard: React.FC = () => {
           recentApplications: data.recentApplications || []
         });
         setError('');
-      } else if (response.status === 401) {
-        setError('Session expired or unauthorized. Please log in again.');
-      } else {
-        setError('Failed to fetch dashboard data.');
-      }
-    } catch (err) {
-      setError('A network error occurred while fetching dashboard data.');
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'A network error occurred while fetching dashboard data.');
     } finally {
       setDashboardLoading(false);
     }
-  }, [user, getAuthToken]);
+  }, [user]);
 
   useEffect(() => {
     if (!authLoading) {

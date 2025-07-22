@@ -4,6 +4,7 @@ import { useParams, useRouter } from 'next/navigation';
 import ConversationList from '../../../src/components/Chat/ConversationList';
 import ChatWindow from '../../../src/components/Chat/ChatWindow';
 import Header from '../../../components/Header';
+import axiosInstance from '../../../src/utils/axiosInstance';
 
 export default function ConversationPage() {
   const params = useParams();
@@ -15,14 +16,14 @@ export default function ConversationPage() {
   // If conversationId is invalid, fetch conversations and redirect to first one
   React.useEffect(() => {
     if (conversationId === null) {
-      fetch('http://localhost:8080/api/chat/conversations?page=0&size=20', {
-        headers: { 'Authorization': typeof window !== 'undefined' ? `Bearer ${localStorage.getItem('token')}` : '' }
-      })
-        .then(res => res.ok ? res.json() : [])
-        .then((data) => {
+      axiosInstance.get('/chat/conversations?page=0&size=20')
+        .then(res => {
+          const data = res.data;
           if (data && data.length > 0 && data[0].conversationId) {
             router.replace(`/chat/${data[0].conversationId}`);
           }
+        }).catch(err => {
+            console.error("Failed to fetch conversations for redirect", err);
         });
     }
   }, [conversationId, router]);

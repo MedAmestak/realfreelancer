@@ -5,7 +5,7 @@ import com.realfreelancer.model.User;
 
 public class AuthResponse {
     
-    private String token;
+    private String accessToken;
     private String type = "Bearer";
     private Long userId;
     private String username;
@@ -17,20 +17,20 @@ public class AuthResponse {
     // Constructors
     public AuthResponse() {}
     
-    public AuthResponse(String token, Long userId, String username, String email) {
-        this.token = token;
+    public AuthResponse(String accessToken, Long userId, String username, String email) {
+        this.accessToken = accessToken;
         this.userId = userId;
         this.username = username;
         this.email = email;
     }
     
     // Getters and Setters
-    public String getToken() {
-        return token;
+    public String getAccessToken() {
+        return accessToken;
     }
     
-    public void setToken(String token) {
-        this.token = token;
+    public void setAccessToken(String accessToken) {
+        this.accessToken = accessToken;
     }
     
     public String getType() {

@@ -3,6 +3,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { connectSocket } from '../../utils/socket';
 import { Client } from '@stomp/stompjs';
 import MessageInput from './MessageInput';
+import axiosInstance from '../../utils/axiosInstance';
 
 interface ChatWindowProps {
 conversationId: number | null;
@@ -53,12 +54,8 @@ const fetchMessages = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-        const token = getAuthToken();
-        const res = await fetch(`http://localhost:8080/api/chat/conversation/${conversationId}?page=0&size=50`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (!res.ok) throw new Error('Failed to fetch messages');
-        const data: Message[] | { content: Message[] } = await res.json();
+        const response = await axiosInstance.get(`/chat/conversation/${conversationId}?page=0&size=50`);
+        const data = response.data;
         let msgs = Array.isArray(data) ? data : data.content || [];
         msgs = msgs.slice().sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
         setMessages(msgs);
@@ -73,16 +70,12 @@ const fetchMessages = useCallback(async () => {
         const otherPrincipal = firstMsg.senderId === user.id ? firstMsg.receiverUsername : firstMsg.senderUsername;
         setOtherUsername(otherPrincipal);
         }
-    } catch (e: unknown) {
-        if (e instanceof Error) {
-        setError(e.message);
-        } else {
-        setError('An unknown error occurred');
-        }
+    } catch (e: any) {
+        setError(e.response?.data?.message || 'An error occurred while fetching messages.');
     } finally {
         setLoading(false);
     }
-}, [conversationId, getAuthToken, user]);
+}, [conversationId, user]);
 
 useEffect(() => {
     fetchMessages();
@@ -141,10 +134,7 @@ useEffect(() => {
       if (!markAsReadCalledRef.current[key]) {
         markAsReadCalledRef.current[key] = true;
         console.debug('[Chat] Marking messages as read for conversationId:', conversationId, 'user.id:', user.id);
-        fetch(`http://localhost:8080/api/chat/read/${conversationId}`, {
-          method: 'PUT',
-          headers: { 'Authorization': `Bearer ${getAuthToken()}` },
-        }).then(() => {
+        axiosInstance.put(`/chat/read/${conversationId}`).then(() => {
           if (typeof onMessagesRead === 'function') onMessagesRead();
         });
       }

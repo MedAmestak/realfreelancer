@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Bell, X, MessageSquare, FileText, Star, Award, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import SockJS from 'sockjs-client';
+import axiosInstance from '../../utils/axiosInstance';
 
 interface Notification {
   id: number;
@@ -92,22 +93,15 @@ const NotificationCenter: React.FC<NotificationCenterProps> = () => {
   // Only fetch once per dropdown open, fetch up to 50 notifications
   const fetchNotifications = async () => {
     try {
-      const token = getAuthToken();
-      if (!token) {
-        console.error('No authentication token found');
-        return;
-      }
       setLoading(true);
-      const response = await fetch("http://localhost:8080/api/notifications?page=0&size=50",
-        { headers: { 'Authorization': `Bearer ${token}` } });
-      if (response.ok) {
-        const data = await response.json();
-        const fetched = normalizeNotificationsResponse(data);
+      const response = await axiosInstance.get("/notifications?page=0&size=50");
+      if (response.data) {
+        const fetched = normalizeNotificationsResponse(response.data);
         setNotifications(fetched);
         setUnreadCount(fetched.filter(n => !n.isRead).length);
       }
     } catch (error) {
-      console.error('Error fetching notifications: Network error');
+      console.error('Error fetching notifications: Network error', error);
     } finally {
       setLoading(false);
     }
@@ -115,24 +109,12 @@ const NotificationCenter: React.FC<NotificationCenterProps> = () => {
 
   const fetchUnreadCount = async () => {
     try {
-      const token = getAuthToken();
-      if (!token) {
-        console.error('No authentication token found');
-        return;
-      }
-
-      const response = await fetch('http://localhost:8080/api/notifications/unread-count', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        setUnreadCount(data.unreadCount || 0);
+      const response = await axiosInstance.get('/notifications/unread-count');
+      if (response.data) {
+        setUnreadCount(response.data.unreadCount || 0);
       }
     } catch (error) {
-      console.error('Error fetching unread count: Network error');
+      console.error('Error fetching unread count: Network error', error);
     }
   };
 
@@ -154,78 +136,36 @@ const NotificationCenter: React.FC<NotificationCenterProps> = () => {
 
   const markAsRead = async (notificationId: number) => {
     try {
-      const token = getAuthToken();
-      if (!token) {
-        console.error('No authentication token found');
-        return;
-      }
-
-      const response = await fetch(`http://localhost:8080/api/notifications/${notificationId}/read`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      
-      if (response.ok) {
+      await axiosInstance.put(`/notifications/${notificationId}/read`);
         setNotifications(prev => prev.map(notif => 
           notif.id === notificationId ? { ...notif, isRead: true } : notif
         ));
         setUnreadCount(prev => Math.max(0, prev - 1));
-      }
     } catch (error) {
-      console.error('Error marking notification as read: Network error');
+      console.error('Error marking notification as read: Network error', error);
     }
   };
 
   const markAllAsRead = async () => {
     try {
-      const token = getAuthToken();
-      if (!token) {
-        console.error('No authentication token found');
-        return;
-      }
-
-      const response = await fetch('http://localhost:8080/api/notifications/mark-all-read', {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      
-      if (response.ok) {
+      await axiosInstance.put('/notifications/mark-all-read');
         setNotifications(prev => prev.map(notif => ({ ...notif, isRead: true })));
         setUnreadCount(0);
-      }
     } catch (error) {
-      console.error('Error marking all notifications as read: Network error');
+      console.error('Error marking all notifications as read: Network error', error);
     }
   };
 
   const deleteNotification = async (notificationId: number) => {
     try {
-      const token = getAuthToken();
-      if (!token) {
-        console.error('No authentication token found');
-        return;
-      }
-
-      const response = await fetch(`http://localhost:8080/api/notifications/${notificationId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      
-      if (response.ok) {
+      await axiosInstance.delete(`/notifications/${notificationId}`);
         setNotifications(prev => prev.filter(notif => notif.id !== notificationId));
         const notification = notifications.find(n => n.id === notificationId);
         if (notification && !notification.isRead) {
           setUnreadCount(prev => Math.max(0, prev - 1));
-        }
       }
     } catch (error) {
-      console.error('Error deleting notification: Network error');
+      console.error('Error deleting notification: Network error', error);
     }
   };
 

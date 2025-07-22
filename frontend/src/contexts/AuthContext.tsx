@@ -1,7 +1,8 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { jwtDecode } from 'jwt-decode';
+import axiosInstance, { setGetAuthTokenFunction, setAuthTokenSetter } from '../utils/axiosInstance';
 
 export type User = {
   id: number;
@@ -17,7 +18,7 @@ interface AuthContextType {
   user: User | null;
   token: string | null;
   login: (username: string, password: string) => Promise<{ success: boolean; error?: string }>;
-  logout: () => void;
+  logout: () => Promise<void>;
   register: (userData: RegisterData) => Promise<{ success: boolean; error?: string }>;
   loading: boolean;
   getAuthToken: () => string | null;
@@ -86,113 +87,92 @@ const parseErrorResponse = async (response: Response): Promise<string> => {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
+  const [token, setTokenState] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchUserProfile = async (authToken: string) => {
-    try {
-      const response = await fetch('http://localhost:8080/api/auth/profile', {
-        headers: {
-          'Authorization': `Bearer ${authToken}`
+  const setToken = useCallback((newToken: string | null) => {
+    setTokenState(newToken);
+    if (newToken) {
+      localStorage.setItem('token', newToken);
+    } else {
+      localStorage.removeItem('token');
         }
-      });
+  }, []);
       
-      if (response.ok) {
-        const userData = await response.json();
-        setUser(userData);
-      } else {
-        // Token is invalid, clear it
-        localStorage.removeItem('token');
-        setToken(null);
+  useEffect(() => {
+    setGetAuthTokenFunction(() => token);
+    setAuthTokenSetter(setToken);
+  }, [token, setToken]);
+
+  const fetchUserProfile = useCallback(async () => {
+    try {
+      const response = await axiosInstance.get('/auth/profile');
+      if (response.data) {
+        setUser(response.data);
       }
     } catch (error) {
-      console.error('Error in user profile fetch');
-      localStorage.removeItem('token');
+      console.error('Error fetching user profile, likely expired token.', error);
       setToken(null);
+      setUser(null);
     } finally {
       setLoading(false);
     }
-  };
+  }, [setToken]);
 
   useEffect(() => {
-    // Check for existing token on app load
     const savedToken = localStorage.getItem('token');
     if (savedToken) {
-      setToken(savedToken);
-      fetchUserProfile(savedToken);
+      setTokenState(savedToken);
+      fetchUserProfile();
     } else {
       setLoading(false);
     }
-  }, []);
+  }, [fetchUserProfile]);
 
-  const login = async (username: string, password: string): Promise<{ success: boolean; error?: string }> => {
+  const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     try {
-      const response = await fetch('http://localhost:8080/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email: username, password }),
-      });
+      const response = await axiosInstance.post('/auth/login', { email, password });
 
-      if (response.ok) {
-        const data = await response.json();
-        const authToken = data.token;
-        localStorage.setItem('token', authToken);
-        setToken(authToken);
-        // Decode the JWT to get user info
-        const decoded: DecodedToken = jwtDecode(authToken);
-        setUser({
-          id: decoded.userId,
-          username: decoded.username,
-          email: decoded.email,
-          bio: decoded.bio,
-          skills: decoded.skills,
-          reputationPoints: decoded.reputationPoints,
-          isVerified: decoded.isVerified,
-        });
-        await fetchUserProfile(authToken);
+      if (response.data && response.data.accessToken) {
+        const { accessToken } = response.data;
+        setToken(accessToken);
+        setGetAuthTokenFunction(() => accessToken);
+        setAuthTokenSetter(setToken);
+        const decoded: User = jwtDecode(accessToken);
+        setUser(decoded);
+
+        await fetchUserProfile();
         return { success: true };
-      } else {
-        const errorMessage = await parseErrorResponse(response);
-        return { success: false, error: errorMessage };
       }
-    } catch (error) {
-      return { success: false, error: 'Network error. Please check your connection.' };
+      return { success: false, error: 'Login failed: No access token received.' };
+    } catch (error: any) {
+      return { success: false, error: error.response?.data?.message || 'Network error. Please check your connection.' };
     }
   };
 
   const register = async (userData: RegisterData): Promise<{ success: boolean; error?: string }> => {
     try {
-      const response = await fetch('http://localhost:8080/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(userData),
-      });
-
-      if (response.ok) {
+      await axiosInstance.post('/auth/register', userData);
         // After successful registration, automatically log in the user
-        const loginResult = await login(userData.email, userData.password);
-        return loginResult;
-      } else {
-        const errorMessage = await parseErrorResponse(response);
-        return { success: false, error: errorMessage };
-      }
-    } catch (error) {
-      return { success: false, error: 'Network error. Please check your connection.' };
+      return await login(userData.email, userData.password);
+    } catch (error: any) {
+        return { success: false, error: error.response?.data?.message || 'Network error. Please check your connection.' };
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem('token');
+  const logout = async () => {
+    try {
+      await axiosInstance.post('/auth/logout');
+    } catch (error) {
+        console.error("Logout failed", error);
+    } finally {
     setToken(null);
     setUser(null);
+    }
   };
 
   const getAuthToken = (): string | null => {
-    return localStorage.getItem('token');
+    return token;
   };
 
   const value: AuthContextType = {

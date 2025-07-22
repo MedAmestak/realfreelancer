@@ -4,26 +4,11 @@ import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { User, Edit, Save, X, Star, Award, Briefcase, MessageSquare } from 'lucide-react'
 import Header from '../../components/Header'
-import { useAuth } from '../../src/contexts/AuthContext'
-import { User as AuthUser } from '../../src/contexts/AuthContext'
+import { useAuth, User as AuthUser } from '../../src/contexts/AuthContext'
+import axiosInstance from '../../src/utils/axiosInstance'
 
-interface Profile {
-  id: number;
-  username: string;
-  email: string;
-  bio: string;
-  githubLink: string;
-  skills: string[];
-  reputationPoints: number;
-  isVerified: boolean;
-  avatarUrl?: string;
-  createdAt: string;
-  stats: {
-    totalProjects: number;
-    completedProjects: number;
-    averageRating: number;
-    totalReviews: number;
-  };
+interface Profile extends AuthUser {
+  stats: Record<string, number>
 }
 
 interface FormData {
@@ -35,7 +20,7 @@ interface FormData {
 }
 
 export default function ProfilePage() {
-  const { user, getAuthToken, setUser } = useAuth() // ⬅️ Added setUser here
+  const { user, setUser } = useAuth() // ⬅️ Added setUser here
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(false)
@@ -62,19 +47,8 @@ export default function ProfilePage() {
   const fetchProfile = async () => {
     setLoading(true);
     try {
-      const token = getAuthToken();
-      if (!token) {
-        setError('You are not logged in.');
-        setLoading(false);
-        return;
-      }
-      const response = await fetch('http://localhost:8080/api/auth/profile', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      if (response.ok) {
-        const data: Profile = await response.json();
+      const response = await axiosInstance.get('/auth/profile');
+      const data: Profile = response.data;
         setProfile(data)
         setFormData({
           username: data.username || '',
@@ -83,9 +57,9 @@ export default function ProfilePage() {
           githubLink: data.githubLink || '',
           skills: data.skills || []
         })
-      }
     } catch (error) {
-      console.error('Error fetching profile: Network error')
+      console.error('Error fetching profile: Network error', error);
+      setError('Failed to fetch profile.');
     } finally {
       setLoading(false)
     }
@@ -113,24 +87,8 @@ export default function ProfilePage() {
 
   const handleSave = async () => {
     try {
-      const token = getAuthToken();
-      if (!token) {
-        setError('Authentication error.');
-        setLoading(false);
-        return;
-      }
-
-      const response = await fetch('http://localhost:8080/api/auth/profile', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(formData)
-      });
-
-      if (response.ok) {
-        const updatedProfile = await response.json(); 
+      const response = await axiosInstance.put('/auth/profile', formData);
+      const updatedProfile = response.data; 
 
         await fetchProfile();
         setEditing(false);
@@ -139,9 +97,9 @@ export default function ProfilePage() {
         setUser((prev: AuthUser | null) => (
           prev ? { ...prev, username: updatedProfile.username } : prev
         ));
-      }
     } catch (error) {
-      console.error('Error updating profile: Network error')
+      console.error('Error updating profile: Network error', error)
+      setError('Failed to update profile.');
     }
   }
 
