@@ -47,8 +47,8 @@ const ConversationList: React.FC<ConversationListProps> = ({ selectedConversatio
         lastMessageTime: item.lastMessageTime,
         unreadCount: item.unreadCount,
       })));
-    } catch (e: any) {
-      setError(e.response?.data?.message || 'An unknown error occurred');
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'An unknown error occurred');
     } finally {
       setLoading(false);
     }

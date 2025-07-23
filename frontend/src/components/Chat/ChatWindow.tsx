@@ -57,7 +57,11 @@ const fetchMessages = useCallback(async () => {
         const response = await axiosInstance.get(`/chat/conversation/${conversationId}?page=0&size=50`);
         const data = response.data;
         let msgs = Array.isArray(data) ? data : data.content || [];
-        msgs = msgs.slice().sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+        msgs = msgs.slice().sort((a: unknown, b: unknown) => {
+          const msgA = a as { createdAt: string };
+          const msgB = b as { createdAt: string };
+          return new Date(msgA.createdAt).getTime() - new Date(msgB.createdAt).getTime();
+        });
         setMessages(msgs);
         if (msgs.length > 0 && msgs[0].projectId) {
         setProjectId(msgs[0].projectId);
@@ -70,8 +74,8 @@ const fetchMessages = useCallback(async () => {
         const otherPrincipal = firstMsg.senderId === user.id ? firstMsg.receiverUsername : firstMsg.senderUsername;
         setOtherUsername(otherPrincipal);
         }
-    } catch (e: any) {
-        setError(e.response?.data?.message || 'An error occurred while fetching messages.');
+    } catch (e: unknown) {
+        setError(e instanceof Error ? e.message : 'An error occurred while fetching messages.');
     } finally {
         setLoading(false);
     }

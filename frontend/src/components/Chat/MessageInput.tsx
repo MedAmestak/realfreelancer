@@ -30,8 +30,8 @@ const MessageInput: React.FC<MessageInputProps> = ({ conversationId, projectId, 
       await axiosInstance.post('/chat/send', { conversationId, content: message });
       setMessage('');
       if (onMessageSent) onMessageSent();
-    } catch (e: any) {
-      setError(e.response?.data?.message || 'An unknown error occurred');
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'An unknown error occurred');
     } finally {
       setLoading(false);
     }

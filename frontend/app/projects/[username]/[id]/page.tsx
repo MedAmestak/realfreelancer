@@ -19,11 +19,11 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
       try {
         const response = await axiosInstance.get(`/projects/${id}`);
         setProject(response.data);
-      } catch (err: any) {
-        if (err.response?.status === 404) {
+      } catch (err: unknown) {
+        if (err && typeof err === "object" && "response" in err && (err as any).response?.status === 404) {
           setError("Project not found.");
         } else {
-          setError(`Failed to load project: ${err.response?.data?.message || err.message}`);
+          setError("An error occurred while loading the project.");
         }
         console.error(err);
       } finally {

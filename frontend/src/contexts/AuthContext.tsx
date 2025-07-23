@@ -110,7 +110,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (response.data) {
         setUser(response.data);
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error fetching user profile, likely expired token.', error);
       setToken(null);
       setUser(null);
@@ -145,8 +145,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return { success: true };
       }
       return { success: false, error: 'Login failed: No access token received.' };
-    } catch (error: any) {
-      return { success: false, error: error.response?.data?.message || 'Network error. Please check your connection.' };
+    } catch (error: unknown) {
+      return { success: false, error: (error as any).response?.data?.message || 'Network error. Please check your connection.' };
     }
   };
 
@@ -155,15 +155,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       await axiosInstance.post('/auth/register', userData);
         // After successful registration, automatically log in the user
       return await login(userData.email, userData.password);
-    } catch (error: any) {
-        return { success: false, error: error.response?.data?.message || 'Network error. Please check your connection.' };
+    } catch (error: unknown) {
+        return { success: false, error: (error as any).response?.data?.message || 'Network error. Please check your connection.' };
     }
   };
 
   const logout = async () => {
     try {
       await axiosInstance.post('/auth/logout');
-    } catch (error) {
+    } catch (error: unknown) {
         console.error("Logout failed", error);
     } finally {
     setToken(null);
