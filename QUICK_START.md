@@ -1,15 +1,12 @@
-# RealFreelancer - Quick Start Guide
+# ⚡ RealFreelancer - Quick Start Guide
 
 ## 🚀 Get Started in 3 Minutes
 
 ### Option 1: One-Click Setup (Recommended)
 
 ```bash
-# Clone the repository
-git clone https://github.com/yourusername/realfreelancer.git
+git clone https://github.com/MedAmestak/realfreelancer.git
 cd realfreelancer
-
-# Run the setup script
 ./setup.sh
 ```
 
@@ -19,38 +16,44 @@ This will:
 - ✅ Install dependencies
 - ✅ Start both backend and frontend servers
 
+---
+
 ### Option 2: Manual Setup
 
 #### Backend Setup
 ```bash
 cd backend
-cp env.example .env
+cp .env.example .env
 mvn spring-boot:run
 ```
 
 #### Frontend Setup
 ```bash
 cd frontend
-cp env.example .env
+cp .env.example .env
 npm install
 npm run dev
 ```
 
+---
+
 ### Option 3: Docker Setup
 
 ```bash
-# Start all services with Docker Compose
 docker-compose up -d
-
 # View logs
 docker-compose logs -f
 ```
+
+---
 
 ## 🌐 Access the Application
 
 - **Frontend**: http://localhost:3000
 - **Backend API**: http://localhost:8080
-- **PostgreSQL Database**: PostgreSQL
+- **PostgreSQL Database**: localhost:5432
+
+---
 
 ## 🔧 Environment Configuration
 
@@ -60,125 +63,83 @@ JWT_SECRET=YOUR_JWT_SECRET
 DB_URL=jdbc:h2:mem:testdb
 SPRING_PROFILES_ACTIVE=dev
 ```
-
 ### Frontend (.env)
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:8080
 ```
 
+---
+
 ## 📱 Features Available
 
-### ✅ Completed (Phase 1)
+### ✅ Completed
 - User registration and login
-- Project listing and filtering
+- Project listing, filtering, and applications
+- Real-time chat (beta)
 - Basic project cards
 - Responsive design
 - JWT authentication
 
-### 🚧 Coming Soon (Phase 2)
-- ✅ Project applications
-- ✅ Real-time chat
-- 🚧 Reviews and badges
-- 🚧 File uploads
-- 🚧 Advanced filtering
+### 🚧 Coming Soon
+- Reviews and badges
+- File uploads
+- Advanced filtering
+
+---
 
 ## 🛠️ Development
 
-### Backend Development
+### Backend
 ```bash
 cd backend
 mvn spring-boot:run
 ```
-
-### Frontend Development
+### Frontend
 ```bash
 cd frontend
 npm run dev
 ```
 
-### Database
-- **Development**: H2 (in-memory) - no setup required
-- **Production**: PostgreSQL - update `.env` with your database credentials
+---
 
-## 🔒 Security Features
+## 🐞 Troubleshooting
 
-- JWT-based authentication
-- Input validation and sanitization
-- CORS configuration for localhost only
-- File size limits (5MB max)
-- SQL injection prevention
+> **Common Issues:**
 
-## 📁 Project Structure
+- **Port already in use**
+  ```bash
+  lsof -ti:3000 | xargs kill -9
+  lsof -ti:8080 | xargs kill -9
+  ```
+- **Java version issues**
+  ```bash
+  java -version # Should be 17 or higher
+  ```
+- **Node.js version issues**
+  ```bash
+  node --version # Should be 18 or higher
+  ```
+- **Database connection issues**
+  - Check your `.env` credentials
 
-```
-realfreelancer/
-├── backend/                 # Spring Boot API
-│   ├── src/main/java/
-│   │   └── com/realfreelancer/
-│   │       ├── controller/  # REST endpoints
-│   │       ├── model/       # JPA entities
-│   │       ├── repository/  # Data access
-│   │       ├── service/     # Business logic
-│   │       └── config/      # Security & config
-│   └── src/main/resources/
-│       └── application.yml
-├── frontend/                # Next.js React app
-│   ├── app/                # Next.js pages
-│   ├── components/         # React components
-│   ├── hooks/              # Custom hooks
-│   └── types/              # TypeScript types
-├── docs/                   # Documentation
-├── setup.sh               # Quick setup script
-└── docker-compose.yml     # Docker setup
-````````````
+> For more help, see [docs/README.md](./docs/README.md) or open an issue.
 
-## 🐛 Troubleshooting
+---
 
-### Common Issues
+## 🎯 What's Next?
 
-1. **Port already in use**
-   ```bash
-   # Kill processes on ports 3000 and 8080
-   lsof -ti:3000 | xargs kill -9
-   lsof -ti:8080 | xargs kill -9
-   ```
-
-2. **Java version issues**
-   ```bash
-   # Check Java version
-   java -version
-   # Should be 17 or higher
-   ```
-
-3. **Node.js version issues**
-   ```bash
-   # Check Node.js version
-   node --version
-   # Should be 18 or higher
-   ```
-
-4. **Database connection issues**
-   - Verify database credentials in `.env` file
-
-### Getting Help
-
-- Check the logs: `docker-compose logs` or individual service logs
-- Verify environment variables are set correctly
-- Ensure all prerequisites are installed
-- Check the main README.md for detailed documentation
-
-## 🎯 Next Steps
-
-1. **Explore the API**: Visit http://localhost:8080 to see available endpoints
+1. **Explore the API**: Visit http://localhost:8080
 2. **Create an account**: Register at http://localhost:3000
-3. **Post a project**: Use the "Post Project" feature
-4. **Customize**: Modify the code to fit your needs
+3. **Post a project**: Try the "Post Project" feature
+4. **Contribute**: See [Contributing](https://github.com/MedAmestak/realfreelancer/issues) or open a PR!
+
+---
 
 ## ⚠️ Important Notes
 
-- This platform is designed for **local development only**
+- This platform is for **local development only**
 - Do not deploy to production without security modifications
-- All data is stored locally (H2 database)
+- All data is stored locally (H2 database by default)
 - JWT tokens are stored in localStorage
 
 ---

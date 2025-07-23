@@ -56,4 +56,4 @@ export function connectSocket({ onMessage, user, token, onTyping }: SocketOption
     },
     client,
   };
-} 
+}
