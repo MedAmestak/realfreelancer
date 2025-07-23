@@ -25,8 +25,8 @@ export default function ProjectsPage() {
       setError('')
       const response = await axiosInstance.get('/projects');
       setProjects(response.data.content || response.data);
-    } catch (error: any) {
-      if (error.response?.status === 401) {
+    } catch (error: unknown) {
+      if (error instanceof Error && error.message.includes('401')) {
         setError('You must be logged in to view projects.')
       } else {
         setError('Failed to fetch projects: Server error')

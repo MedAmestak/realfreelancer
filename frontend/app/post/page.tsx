@@ -97,9 +97,9 @@ export default function PostProjectPage() {
 
       await axiosInstance.post('/projects', projectData)
         router.push('/dashboard')
-    } catch (err: any) {
-      const errMsg = err.response?.data?.message || 'An error occurred.';
-      const fieldErrs = err.response?.data?.errors || {};
+    } catch (err: unknown) {
+      const errMsg = (err as any).response?.data?.message || 'An error occurred.';
+      const fieldErrs = (err as any).response?.data?.errors || {};
         setError(errMsg);
         setFieldErrors(fieldErrs);
     } finally {

@@ -121,8 +121,8 @@ const UserDashboard: React.FC = () => {
           recentApplications: data.recentApplications || []
         });
         setError('');
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'A network error occurred while fetching dashboard data.');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'A network error occurred while fetching dashboard data.');
     } finally {
       setDashboardLoading(false);
     }
