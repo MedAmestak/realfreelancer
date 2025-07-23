@@ -95,13 +95,25 @@ export default function PostProjectPage() {
         deadline: deadlineDate.toISOString()
       }
 
-      await axiosInstance.post('/projects', projectData)
-        router.push('/dashboard')
+      const response = await axiosInstance.post('/projects', projectData);
+      console.log('Project POST response:', response);
+      router.push('/dashboard');
+      return;
     } catch (err: unknown) {
-      const errMsg = (err as any).response?.data?.message || 'An error occurred.';
+      console.error('Project POST error:', err);
+      let errMsg = 'An error occurred.';
+      if ((err as any).response?.data) {
+        if (typeof (err as any).response.data === 'string') {
+          errMsg = (err as any).response.data;
+        } else if ((err as any).response.data.message) {
+          errMsg = (err as any).response.data.message;
+        }
+      } else if ((err as any).message) {
+        errMsg = (err as any).message;
+      }
       const fieldErrs = (err as any).response?.data?.errors || {};
-        setError(errMsg);
-        setFieldErrors(fieldErrs);
+      setError(errMsg);
+      setFieldErrors(fieldErrs);
     } finally {
       setLoading(false);
     }

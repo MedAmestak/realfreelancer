@@ -165,9 +165,9 @@ class ProjectController {
             Project savedProject = projectRepository.save(project);
             return ResponseEntity.ok(savedProject);
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body("Invalid project type: " + e.getMessage());
+            return ResponseEntity.badRequest().body(java.util.Map.of("message", "Invalid project type: " + e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Error creating project: " + e.getMessage());
+            return ResponseEntity.badRequest().body(java.util.Map.of("message", "Error creating project: " + e.getMessage()));
         }
     }
 
